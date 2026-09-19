@@ -1,19 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
-  CalendarDays,
-  Camera,
-  Check,
-  ChevronRight,
-  Clock3,
-  Leaf,
-  Plus,
-  Search,
-  ShoppingBasket,
-  Sparkles,
-  Utensils,
-  X,
-} from "lucide-react";\nimport AuthScreen from "./AuthScreen";\nimport { supabase } from "./lib/supabase";\nimport { signOut } from "./services/auth";\nimport { createPantryItem, listPantryItems } from "./services/pantry";
+  ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
+  LogOut, Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
+} from "lucide-react";
+import AuthScreen from "./AuthScreen";
+import { supabase } from "./lib/supabase";
+import { signOut } from "./services/auth";
+import { createPantryItem, listPantryItems } from "./services/pantry";
+import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
   id: string;
@@ -24,7 +18,7 @@ type PantryItem = {
   days: number;
 };
 
-const initialPantry: PantryItem[] = [
+const demoPantry: PantryItem[] = [
   { id: "demo-1", name: "Avocado", amount: "2 pcs", category: "Produce", expiry: "Today", days: 0 },
   { id: "demo-2", name: "Cherry tomatoes", amount: "250 g", category: "Produce", expiry: "Tomorrow", days: 1 },
   { id: "demo-3", name: "Eggs", amount: "6 pcs", category: "Dairy", expiry: "4 days", days: 4 },
@@ -38,31 +32,95 @@ const recipes = [
 ];
 
 function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(Boolean(supabase));
   const [active, setActive] = useState("Overview");
-  const [pantry, setPantry] = useState(initialPantry);
+  const [pantry, setPantry] = useState<PantryItem[]>(demoPantry);
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
-  const [newIngredient, setNewIngredient] = useState("");\n\n  useEffect(() => {\n    if (!supabase) return;\n    let mounted = true;\n    supabase.auth.getSession().then(({ data }) => {\n      if (mounted) { setSession(data.session); setAuthLoading(false); }\n    });\n    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {\n      if (mounted) setSession(nextSession);\n    });\n    return () => { mounted = false; listener.subscription.unsubscribe(); };\n  }, []);\n\n  useEffect(() => {\n    if (!session) return;\n    listPantryItems().then((rows) => {\n      setPantry(rows.map((row) => ({\n        id: row.id, name: row.name, amount: row.quantity == null ? "Amount not set" : `${row.quantity} ${row.unit ?? ""}`.trim(),\n        category: row.category ?? "Pantry", expiry: row.expires_on ?? "No expiry",\n        days: row.expires_on ? Math.ceil((new Date(row.expires_on).getTime() - Date.now()) / 86400000) : 999,\n      })));\n    }).catch((error) => console.error("Pantry load failed", error));\n  }, [session]);
+  const [newIngredient, setNewIngredient] = useState("");
+
+  useEffect(() => {
+    if (!supabase) return;
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        setSession(data.session);
+        setAuthLoading(false);
+      }
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (mounted) setSession(nextSession);
+    });
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+    listPantryItems()
+      .then((rows) => {
+        setPantry(rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          amount: row.quantity == null ? "Amount not set" : `${row.quantity} ${row.unit ?? ""}`.trim(),
+          category: row.category ?? "Pantry",
+          expiry: row.expires_on ?? "No expiry",
+          days: row.expires_on
+            ? Math.ceil((new Date(row.expires_on).getTime() - Date.now()) / 86400000)
+            : 999,
+        })));
+      })
+      .catch((error) => console.error("Pantry load failed", error));
+  }, [session]);
 
   const filtered = useMemo(
     () => pantry.filter((item) => item.name.toLowerCase().includes(query.toLowerCase())),
     [pantry, query],
   );
 
-  const addIngredient = () => {
+  const addIngredient = async () => {
     const name = newIngredient.trim();
     if (!name) return;
-    setPantry((items) => [
-      ...items,
-      { id: Date.now(), name, amount: "1 item", category: "Pantry", expiry: "7 days", days: 7 },
-    ]);
+
+    if (session) {
+      try {
+        const row = await createPantryItem({
+          name,
+          quantity: 1,
+          unit: "item",
+          category: "Pantry",
+        });
+        if (row) {
+          setPantry((items) => [
+            ...items,
+            { id: row.id, name: row.name, amount: "1 item", category: "Pantry", expiry: "No expiry", days: 999 },
+          ]);
+        }
+      } catch (error) {
+        setQuery(error instanceof Error ? error.message : "Could not add ingredient.");
+      }
+    } else {
+      setPantry((items) => [
+        ...items,
+        { id: String(Date.now()), name, amount: "1 item", category: "Pantry", expiry: "7 days", days: 7 },
+      ]);
+    }
     setNewIngredient("");
     setShowAdd(false);
   };
 
-  const saveRecipe = (title: string) =>
-    setSaved((items) => items.includes(title) ? items.filter((item) => item !== title) : [...items, title]);
+  const saveRecipe = (title: string) => {
+    setSaved((items) =>
+      items.includes(title) ? items.filter((item) => item !== title) : [...items, title],
+    );
+  };
+
+  if (authLoading) return <div className="auth-loading">Preparing your kitchen...</div>;
+  if (supabase && !session) return <AuthScreen onAuthenticated={() => undefined} />;
 
   return (
     <div className="app-shell">
@@ -92,13 +150,17 @@ function App() {
         <header className="topbar">
           <div className="mobile-brand"><Utensils size={18} /> Kitchen</div>
           <div className="top-search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your kitchen..." /></div>
-          <button className="avatar" title={session?.user.email ?? "Demo kitchen"} onClick={() => session && signOut()}>{session ? (session.user.email?.slice(0,2).toUpperCase() ?? "KI") : "MO"}</button>
+          {session ? (
+            <button className="avatar" title="Sign out" onClick={() => signOut()} aria-label="Sign out">
+              {session.user.email?.slice(0, 2).toUpperCase() ?? "KI"}
+            </button>
+          ) : <div className="avatar">MO</div>}
         </header>
 
         <div className="content">
           <section className="hero">
             <div>
-              <span className="eyebrow"><Leaf size={13} /> Thursday, September 19</span>
+              <span className="eyebrow"><Leaf size={13} /> Your kitchen, today</span>
               <h1>Good food<br /><em>starts here.</em></h1>
               <p>Turn what’s already in your kitchen into something worth sitting down for.</p>
               <div className="hero-actions">
@@ -107,18 +169,17 @@ function App() {
               </div>
             </div>
             <div className="hero-art">
-              <div className="hero-orbit orbit-one" />
-              <div className="hero-orbit orbit-two" />
+              <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
               <div className="food-circle">
                 <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=85" alt="Fresh ingredients" />
               </div>
-              <div className="floating-note"><Sparkles size={14} /><span><strong>4</strong> ingredients<br />need using soon</span></div>
+              <div className="floating-note"><Sparkles size={14} /><span><strong>{pantry.filter((i) => i.days <= 2).length}</strong> ingredients<br />need using soon</span></div>
             </div>
           </section>
 
           <section className="stats">
             <div><span>Pantry</span><strong>{pantry.length}</strong><small>ingredients</small></div>
-            <div><span>Expiring soon</span><strong>{pantry.filter(i => i.days <= 2).length}</strong><small>within 48 hours</small></div>
+            <div><span>Expiring soon</span><strong>{pantry.filter((i) => i.days <= 2).length}</strong><small>within 48 hours</small></div>
             <div><span>Saved recipes</span><strong>{saved.length}</strong><small>in your collection</small></div>
             <div><span>Shopping</span><strong>7</strong><small>items to pick up</small></div>
           </section>
@@ -127,7 +188,6 @@ function App() {
             <div><span className="eyebrow">Use it first</span><h2>Ingredients with a deadline</h2></div>
             <button className="text-link" onClick={() => setActive("Pantry")}>View pantry <ArrowRight size={15} /></button>
           </section>
-
           <section className="pantry-strip">
             {filtered.slice(0, 4).map((item) => (
               <article className={item.days <= 1 ? "ingredient-card urgent" : "ingredient-card"} key={item.id}>
@@ -142,24 +202,47 @@ function App() {
             <div><span className="eyebrow">From your pantry</span><h2>Tonight's possibilities</h2></div>
             <button className="text-link" onClick={() => setActive("Recipes")}>See all recipes <ArrowRight size={15} /></button>
           </section>
-
           <section className="recipe-grid">
             {recipes.map((recipe) => (
               <article className="recipe-card" key={recipe.title}>
-                <div className="recipe-image"><img src={recipe.image} alt="" /><button className={saved.includes(recipe.title) ? "save saved" : "save"} onClick={() => saveRecipe(recipe.title)} aria-label="Save recipe">{saved.includes(recipe.title) ? <Check size={16} /> : "+"}</button></div>
+                <div className="recipe-image">
+                  <img src={recipe.image} alt="" />
+                  <button className={saved.includes(recipe.title) ? "save saved" : "save"} onClick={() => saveRecipe(recipe.title)} aria-label="Save recipe">
+                    {saved.includes(recipe.title) ? <Check size={16} /> : "+"}
+                  </button>
+                </div>
                 <div className="recipe-body"><span>{recipe.tag}</span><h3>{recipe.title}</h3><p><Clock3 size={14} /> {recipe.time}</p></div>
               </article>
             ))}
           </section>
 
           <section className="bottom-grid">
-            <article className="plan-card"><div><span className="eyebrow">This week</span><h2>A little plan<br /><em>goes a long way.</em></h2><p>Build a meal plan around what you already have and let the shopping list fill itself.</p><button className="dark-button" onClick={() => setActive("Meal plan")}>Open meal plan <CalendarDays size={15} /></button></div><div className="plan-plate">🥗</div></article>
-            <article className="shop-card"><div className="shop-title"><div><span className="eyebrow">Shopping list</span><h2>7 things to bring home.</h2></div><ShoppingBasket /></div><div className="shop-items">{["Greek yogurt", "Lemons", "Parmesan"].map((item) => <label key={item}><input type="checkbox" /><span>{item}</span></label>)}</div><button className="text-link" onClick={() => setActive("Shopping list")}>Open full list <ArrowRight size={15} /></button></article>
+            <article className="plan-card">
+              <div><span className="eyebrow">This week</span><h2>A little plan<br /><em>goes a long way.</em></h2><p>Build a meal plan around what you already have and let the shopping list fill itself.</p><button className="dark-button" onClick={() => setActive("Meal plan")}>Open meal plan <CalendarDays size={15} /></button></div>
+              <div className="plan-plate">🥗</div>
+            </article>
+            <article className="shop-card">
+              <div className="shop-title"><div><span className="eyebrow">Shopping list</span><h2>7 things to bring home.</h2></div><ShoppingBasket /></div>
+              <div className="shop-items">{["Greek yogurt", "Lemons", "Parmesan"].map((item) => <label key={item}><input type="checkbox" /><span>{item}</span></label>)}</div>
+              <button className="text-link" onClick={() => setActive("Shopping list")}>Open full list <ArrowRight size={15} /></button>
+            </article>
           </section>
         </div>
       </main>
 
-      {showAdd && <div className="modal-backdrop" onMouseDown={() => setShowAdd(false)}><div className="modal" onMouseDown={(e) => e.stopPropagation()}><button className="modal-close" onClick={() => setShowAdd(false)}><X size={18} /></button><span className="eyebrow"><Plus size={13} /> Pantry</span><h2>Add an ingredient</h2><p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p><input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" /><div className="photo-option"><Camera size={18} /><div><strong>Photo recognition</strong><span>Coming with the AI vision layer</span></div></div><button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button></div></div>}
+      {showAdd && (
+        <div className="modal-backdrop" onMouseDown={() => setShowAdd(false)}>
+          <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowAdd(false)}><X size={18} /></button>
+            <span className="eyebrow"><Plus size={13} /> Pantry</span>
+            <h2>Add an ingredient</h2>
+            <p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p>
+            <input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" />
+            <div className="photo-option"><Camera size={18} /><div><strong>Photo recognition</strong><span>Coming with the AI vision layer</span></div></div>
+            <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
