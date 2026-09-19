@@ -203,6 +203,29 @@ function App() {
         </header>
 
         <div className="content">
+          {active === "Pantry" ? (
+            <section className="pantry-page">
+              <div className="section-head pantry-page-head">
+                <div><span className="eyebrow">Inventory</span><h2>Your pantry</h2><p>Keep quantities and expiry dates useful, not mysterious.</p></div>
+                <button className="primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Add ingredient</button>
+              </div>
+              {pantryError && <div className="pantry-error">{pantryError}</div>}
+              <div className="pantry-table">
+                <div className="pantry-table-head"><span>Ingredient</span><span>Quantity</span><span>Category</span><span>Expiry</span><span>Actions</span></div>
+                {filtered.length === 0 ? (
+                  <div className="pantry-empty"><Leaf size={25} /><strong>Your pantry is empty.</strong><span>Add an ingredient to start building your kitchen memory.</span></div>
+                ) : filtered.map((item) => (
+                  <article className="pantry-row" key={item.id}>
+                    <div className="pantry-name"><div className="ingredient-icon">{item.name.slice(0, 1)}</div><div><strong>{item.name}</strong><small>{item.category}</small></div></div>
+                    <span>{item.amount}</span><span>{item.category}</span>
+                    <span className={item.days <= 2 ? "expiry urgent-text" : "expiry"}>{item.expiry}</span>
+                    <div className="row-actions"><button onClick={() => openEdit(item)}>Edit</button><button className="danger-link" onClick={() => removePantryItem(item)} disabled={pantryBusy}>Delete</button></div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <> 
           <section className="hero">
             <div>
               <span className="eyebrow"><Leaf size={13} /> Your kitchen, today</span>
@@ -272,8 +295,28 @@ function App() {
               <button className="text-link" onClick={() => setActive("Shopping list")}>Open full list <ArrowRight size={15} /></button>
             </article>
           </section>
+            </>
+          )}
         </div>
       </main>
+
+      {editing && (
+        <div className="modal-backdrop" onMouseDown={() => !pantryBusy && setEditing(null)}>
+          <div className="modal edit-modal" onMouseDown={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setEditing(null)}><X size={18} /></button>
+            <span className="eyebrow">Pantry · Edit</span><h2>Refine ingredient</h2>
+            <div className="edit-grid">
+              <label>NAME<input value={editName} onChange={(e) => setEditName(e.target.value)} /></label>
+              <label>QUANTITY<input type="number" min="0" step="0.1" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} /></label>
+              <label>UNIT<input value={editUnit} onChange={(e) => setEditUnit(e.target.value)} /></label>
+              <label>CATEGORY<select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}><option>Produce</option><option>Dairy</option><option>Herbs</option><option>Pantry</option><option>Grains</option><option>Protein</option><option>Other</option></select></label>
+              <label className="full-field">EXPIRY DATE<input type="date" value={editExpiry} onChange={(e) => setEditExpiry(e.target.value)} /></label>
+            </div>
+            {pantryError && <div className="auth-message">{pantryError}</div>}
+            <button className="primary full" onClick={savePantryEdit} disabled={pantryBusy}>{pantryBusy ? "Saving..." : <>Save changes <Check size={15} /></>}</button>
+          </div>
+        </div>
+      )}
 
       {showAdd && (
         <div className="modal-backdrop" onMouseDown={() => setShowAdd(false)}>
