@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -13,10 +13,10 @@ import {
   Sparkles,
   Utensils,
   X,
-} from "lucide-react";
+} from "lucide-react";\nimport AuthScreen from "./AuthScreen";\nimport { supabase } from "./lib/supabase";\nimport { signOut } from "./services/auth";\nimport { createPantryItem, listPantryItems } from "./services/pantry";
 
 type PantryItem = {
-  id: number;
+  id: string;
   name: string;
   amount: string;
   category: string;
@@ -25,10 +25,10 @@ type PantryItem = {
 };
 
 const initialPantry: PantryItem[] = [
-  { id: 1, name: "Avocado", amount: "2 pcs", category: "Produce", expiry: "Today", days: 0 },
-  { id: 2, name: "Cherry tomatoes", amount: "250 g", category: "Produce", expiry: "Tomorrow", days: 1 },
-  { id: 3, name: "Eggs", amount: "6 pcs", category: "Dairy", expiry: "4 days", days: 4 },
-  { id: 4, name: "Basil", amount: "1 bunch", category: "Herbs", expiry: "5 days", days: 5 },
+  { id: "demo-1", name: "Avocado", amount: "2 pcs", category: "Produce", expiry: "Today", days: 0 },
+  { id: "demo-2", name: "Cherry tomatoes", amount: "250 g", category: "Produce", expiry: "Tomorrow", days: 1 },
+  { id: "demo-3", name: "Eggs", amount: "6 pcs", category: "Dairy", expiry: "4 days", days: 4 },
+  { id: "demo-4", name: "Basil", amount: "1 bunch", category: "Herbs", expiry: "5 days", days: 5 },
 ];
 
 const recipes = [
@@ -43,7 +43,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
-  const [newIngredient, setNewIngredient] = useState("");
+  const [newIngredient, setNewIngredient] = useState("");\n\n  useEffect(() => {\n    if (!supabase) return;\n    let mounted = true;\n    supabase.auth.getSession().then(({ data }) => {\n      if (mounted) { setSession(data.session); setAuthLoading(false); }\n    });\n    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {\n      if (mounted) setSession(nextSession);\n    });\n    return () => { mounted = false; listener.subscription.unsubscribe(); };\n  }, []);\n\n  useEffect(() => {\n    if (!session) return;\n    listPantryItems().then((rows) => {\n      setPantry(rows.map((row) => ({\n        id: row.id, name: row.name, amount: row.quantity == null ? "Amount not set" : `${row.quantity} ${row.unit ?? ""}`.trim(),\n        category: row.category ?? "Pantry", expiry: row.expires_on ?? "No expiry",\n        days: row.expires_on ? Math.ceil((new Date(row.expires_on).getTime() - Date.now()) / 86400000) : 999,\n      })));\n    }).catch((error) => console.error("Pantry load failed", error));\n  }, [session]);
 
   const filtered = useMemo(
     () => pantry.filter((item) => item.name.toLowerCase().includes(query.toLowerCase())),
@@ -92,7 +92,7 @@ function App() {
         <header className="topbar">
           <div className="mobile-brand"><Utensils size={18} /> Kitchen</div>
           <div className="top-search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your kitchen..." /></div>
-          <div className="avatar">MO</div>
+          <button className="avatar" title={session?.user.email ?? "Demo kitchen"} onClick={() => session && signOut()}>{session ? (session.user.email?.slice(0,2).toUpperCase() ?? "KI") : "MO"}</button>
         </header>
 
         <div className="content">
