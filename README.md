@@ -57,3 +57,24 @@ Visual language:
 **Day 1 · Foundation**
 
 The repository is initialized with the product vision and implementation roadmap. No production features or deployment are claimed yet.
+
+
+## Gemini recipe intelligence
+
+The recipe workspace now supports an online Gemini generation path through the FastAPI backend.
+
+### Local setup
+
+1. Create a Gemini API key in Google's AI tooling.
+2. Copy `backend/.env.example` to `backend/.env`.
+3. Set `GEMINI_API_KEY` and keep the key out of Git.
+4. Keep `GEMINI_MODEL=gemini-2.5-flash` unless you intentionally switch to another compatible model.
+5. Set `VITE_API_BASE_URL` in `frontend/.env` to the running FastAPI URL.
+
+The browser never receives the Gemini key. The FastAPI service calls Gemini and requests a structured JSON recipe response.
+
+### AI fallback
+
+The existing deterministic pantry recipe engine remains available through **Use pantry engine**. Gemini is an enhancement, not a hard dependency for the local recipe-matching workflow.
+
+The current photo workflow is still a user-confirmation intake flow. It does not claim automatic ingredient recognition until a vision model is integrated and verified.
