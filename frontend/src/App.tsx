@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
 Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
@@ -51,6 +51,10 @@ function App() {
   const [pantryError, setPantryError] = useState("");
   const [recipeResults, setRecipeResults] = useState<SmartRecipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoName, setPhotoName] = useState("");
+  const [photoIngredients, setPhotoIngredients] = useState<string[]>([]);
+  const [photoMessage, setPhotoMessage] = useState("");
 
   useEffect(() => {
     if (!supabase) return;
@@ -161,6 +165,33 @@ function App() {
     } catch (error) { setPantryError(error instanceof Error ? error.message : "Could not remove ingredient."); }
     finally { setPantryBusy(false); }
   };
+  const handleIngredientPhoto = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { setPhotoMessage("Please choose an image file."); return; }
+    if (file.size > 8 * 1024 * 1024) { setPhotoMessage("Image must be smaller than 8 MB."); return; }
+    setPhotoName(file.name);
+    setPhotoMessage("Photo ready. Confirm the ingredients before adding them.");
+    setPhotoIngredients([]);
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(String(reader.result));
+    reader.readAsDataURL(file);
+  };
+
+  const addPhotoIngredient = (value: string) => {
+    const name = value.trim();
+    if (!name || photoIngredients.includes(name)) return;
+    setPhotoIngredients((items) => [...items, name]);
+  };
+
+  const addConfirmedPhotoIngredients = async () => {
+    for (const name of photoIngredients) {
+      if (session) await createPantryItem({ name, quantity: 1, unit: "item", category: "Photo import" });
+    }
+    setPantry((items) => [...items, ...photoIngredients.map((name, index) => ({ id: "photo-" + Date.now() + "-" + index, name, amount: "1 item", category: "Photo import", expiry: "No expiry", days: 999 }))]);
+    setPhotoPreview(null); setPhotoIngredients([]); setPhotoName(""); setShowAdd(false); setPhotoMessage("");
+  };
+
   const generateRecipes = async () => {
     const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
     setRecipeResults(generateRecipeIntelligence(rows));
@@ -370,7 +401,8 @@ function App() {
             <h2>Add an ingredient</h2>
             <p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p>
             <input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" />
-            <div className="photo-option"><Camera size={18} /><div><strong>Photo recognition</strong><span>Coming with the AI vision layer</span></div></div>
+            <label className="photo-option photo-upload"><Camera size={18} /><div><strong>Ingredient photo</strong><span>Upload a photo, then confirm ingredients before saving.</span></div><input type="file" accept="image/*" onChange={handleIngredientPhoto} /></label>
+            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">Review · {photoName}</span><strong>What ingredients are visible?</strong><div className="quick-ingredients">{["tomato","onion","egg","avocado","basil","lemon","potato","garlic"].map((item) => <button key={item} type="button" className={photoIngredients.includes(item) ? "selected" : ""} onClick={() => photoIngredients.includes(item) ? setPhotoIngredients((items) => items.filter((x) => x !== item)) : addPhotoIngredient(item)}>{item}</button>)}</div><small>{photoMessage}</small><button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length}>Add confirmed ingredients</button></div></div>
             <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
           </div>
         </div>
