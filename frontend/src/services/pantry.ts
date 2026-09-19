@@ -11,6 +11,13 @@ export type PantryRow = {
 
 const fields = "id,name,quantity,unit,category,expires_on";
 
+async function currentUserId() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  return data.user?.id ?? null;
+}
+
 export async function listPantryItems(): Promise<PantryRow[]> {
   if (!supabase) return [];
   const { data, error } = await supabase.from("pantry_items").select(fields).order("expires_on", { ascending: true, nullsFirst: false });
@@ -26,7 +33,9 @@ export async function createPantryItem(input: {
   expires_on?: string | null;
 }) {
   if (!supabase) return null;
-  const { data, error } = await supabase.from("pantry_items").insert(input).select(fields).single();
+  const userId = await currentUserId();
+  if (!userId) throw new Error("Please sign in before adding pantry items.");
+  const { data, error } = await supabase.from("pantry_items").insert({ ...input, user_id: userId }).select(fields).single();
   if (error) throw error;
   return data as PantryRow;
 }
