@@ -9,13 +9,11 @@ export type PantryRow = {
   expires_on: string | null;
 };
 
+const fields = "id,name,quantity,unit,category,expires_on";
+
 export async function listPantryItems(): Promise<PantryRow[]> {
   if (!supabase) return [];
-  const { data, error } = await supabase
-    .from("pantry_items")
-    .select("id,name,quantity,unit,category,expires_on")
-    .order("expires_on", { ascending: true, nullsFirst: false });
-
+  const { data, error } = await supabase.from("pantry_items").select(fields).order("expires_on", { ascending: true, nullsFirst: false });
   if (error) throw error;
   return data ?? [];
 }
@@ -28,12 +26,21 @@ export async function createPantryItem(input: {
   expires_on?: string | null;
 }) {
   if (!supabase) return null;
-  const { data, error } = await supabase
-    .from("pantry_items")
-    .insert(input)
-    .select("id,name,quantity,unit,category,expires_on")
-    .single();
-
+  const { data, error } = await supabase.from("pantry_items").insert(input).select(fields).single();
   if (error) throw error;
   return data as PantryRow;
+}
+
+export async function updatePantryItem(id: string, input: Partial<Omit<PantryRow, "id">>) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("pantry_items").update(input).eq("id", id).select(fields).single();
+  if (error) throw error;
+  return data as PantryRow;
+}
+
+export async function deletePantryItem(id: string) {
+  if (!supabase) return false;
+  const { error } = await supabase.from("pantry_items").delete().eq("id", id);
+  if (error) throw error;
+  return true;
 }
