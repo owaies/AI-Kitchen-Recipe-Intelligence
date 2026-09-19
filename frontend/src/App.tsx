@@ -6,7 +6,7 @@ Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
 import AuthScreen from "./AuthScreen";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
-import { createPantryItem, listPantryItems } from "./services/pantry";
+import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
@@ -40,6 +40,14 @@ function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState("");
+  const [editing, setEditing] = useState<PantryItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editQuantity, setEditQuantity] = useState("1");
+  const [editUnit, setEditUnit] = useState("item");
+  const [editCategory, setEditCategory] = useState("Pantry");
+  const [editExpiry, setEditExpiry] = useState("");
+  const [pantryBusy, setPantryBusy] = useState(false);
+  const [pantryError, setPantryError] = useState("");
 
   useEffect(() => {
     if (!supabase) return;
@@ -120,6 +128,36 @@ function App() {
     setShowAdd(false);
   };
 
+  const openEdit = (item: PantryItem) => {
+    setEditing(item); setEditName(item.name); setEditQuantity(item.amount.split(" ")[0] || "1");
+    setEditUnit(item.amount.split(" ").slice(1).join(" ") || "item"); setEditCategory(item.category);
+    setEditExpiry(/^\\d{4}-\\d{2}-\\d{2}$/.test(item.expiry) ? item.expiry : ""); setPantryError("");
+  };
+
+  const savePantryEdit = async () => {
+    if (!editing || !editName.trim()) return;
+    setPantryBusy(true); setPantryError("");
+    try {
+      if (session) {
+        const row = await updatePantryItem(editing.id, { name: editName.trim(), quantity: Number(editQuantity) || 0, unit: editUnit || "item", category: editCategory || "Pantry", expires_on: editExpiry || null });
+        if (row) setPantry((items) => items.map((item) => item.id === editing.id ? { ...item, name: row.name, amount: `${row.quantity ?? 0} ${row.unit ?? ""}`.trim(), category: row.category ?? "Pantry", expiry: row.expires_on ?? "No expiry", days: row.expires_on ? Math.ceil((new Date(row.expires_on).getTime() - Date.now()) / 86400000) : 999 } : item));
+      } else {
+        setPantry((items) => items.map((item) => item.id === editing.id ? { ...item, name: editName.trim(), amount: `${editQuantity} ${editUnit}`.trim(), category: editCategory, expiry: editExpiry || "No expiry", days: editExpiry ? Math.ceil((new Date(editExpiry).getTime() - Date.now()) / 86400000) : 999 } : item));
+      }
+      setEditing(null);
+    } catch (error) { setPantryError(error instanceof Error ? error.message : "Could not update ingredient."); }
+    finally { setPantryBusy(false); }
+  };
+
+  const removePantryItem = async (item: PantryItem) => {
+    if (!confirm("Remove " + item.name + " from your pantry?")) return;
+    setPantryBusy(true); setPantryError("");
+    try {
+      if (session) await deletePantryItem(item.id);
+      setPantry((items) => items.filter((entry) => entry.id !== item.id));
+    } catch (error) { setPantryError(error instanceof Error ? error.message : "Could not remove ingredient."); }
+    finally { setPantryBusy(false); }
+  };
   const saveRecipe = (title: string) => {
     setSaved((items) =>
       items.includes(title) ? items.filter((item) => item !== title) : [...items, title],
