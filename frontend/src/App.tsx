@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
-  LogOut, Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
+Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
 } from "lucide-react";
 import AuthScreen from "./AuthScreen";
 import { supabase } from "./lib/supabase";
@@ -60,7 +60,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !supabase) return;
+    const displayName = session.user.user_metadata?.display_name ?? session.user.email?.split("@")[0] ?? null;
+    supabase.from("profiles").upsert({
+      id: session.user.id,
+      display_name: displayName,
+    }).then(({ error }) => {
+      if (error) console.error("Profile sync failed", error);
+    });
     listPantryItems()
       .then((rows) => {
         setPantry(rows.map((row) => ({
