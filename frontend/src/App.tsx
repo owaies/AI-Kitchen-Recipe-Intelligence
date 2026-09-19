@@ -8,6 +8,7 @@ import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
+import { generateAIRecipe } from "./services/aiRecipe";
 import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
@@ -50,6 +51,8 @@ function App() {
   const [pantryBusy, setPantryBusy] = useState(false);
   const [pantryError, setPantryError] = useState("");
   const [recipeResults, setRecipeResults] = useState<SmartRecipe[]>([]);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState("");
@@ -195,7 +198,23 @@ function App() {
   const generateRecipes = async () => {
     const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
     setRecipeResults(generateRecipeIntelligence(rows));
+    setAiMessage("");
     setActive("Recipes");
+  };
+
+  const generateGeminiRecipe = async () => {
+    setAiBusy(true);
+    setAiMessage("");
+    try {
+      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+      const recipe = await generateAIRecipe(rows, "a practical dinner using the pantry");
+      setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
+      setActive("Recipes");
+    } catch (error) {
+      setAiMessage(error instanceof Error ? error.message : "Gemini recipe generation is unavailable.");
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   const saveRecipe = (title: string) => {
@@ -268,8 +287,9 @@ function App() {
             <section className="recipes-page">
               <div className="recipe-intelligence-hero">
                 <div><span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span><h2>What can you cook<br /><em>right now?</em></h2><p>Recipes are matched against ingredients you already have, with missing items clearly separated.</p></div>
-                <button className="primary" onClick={generateRecipes}><Sparkles size={15} /> Recalculate ideas</button>
+                <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Gemini..." : "Ask Gemini"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
+              {aiMessage && <div className="pantry-error">{aiMessage}</div>}
               {recipeResults.length === 0 ? (
                 <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary" onClick={generateRecipes}>Generate recipes</button></div>
               ) : (
