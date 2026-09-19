@@ -7,6 +7,7 @@ import AuthScreen from "./AuthScreen";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
+import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
 import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
@@ -48,6 +49,8 @@ function App() {
   const [editExpiry, setEditExpiry] = useState("");
   const [pantryBusy, setPantryBusy] = useState(false);
   const [pantryError, setPantryError] = useState("");
+  const [recipeResults, setRecipeResults] = useState<SmartRecipe[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -158,6 +161,12 @@ function App() {
     } catch (error) { setPantryError(error instanceof Error ? error.message : "Could not remove ingredient."); }
     finally { setPantryBusy(false); }
   };
+  const generateRecipes = async () => {
+    const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+    setRecipeResults(generateRecipeIntelligence(rows));
+    setActive("Recipes");
+  };
+
   const saveRecipe = (title: string) => {
     setSaved((items) =>
       items.includes(title) ? items.filter((item) => item !== title) : [...items, title],
@@ -224,6 +233,28 @@ function App() {
                 ))}
               </div>
             </section>
+          ) : active === "Recipes" ? (
+            <section className="recipes-page">
+              <div className="recipe-intelligence-hero">
+                <div><span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span><h2>What can you cook<br /><em>right now?</em></h2><p>Recipes are matched against ingredients you already have, with missing items clearly separated.</p></div>
+                <button className="primary" onClick={generateRecipes}><Sparkles size={15} /> Recalculate ideas</button>
+              </div>
+              {recipeResults.length === 0 ? (
+                <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary" onClick={generateRecipes}>Generate recipes</button></div>
+              ) : (
+                <div className="smart-recipe-grid">
+                  {recipeResults.map((recipe) => (
+                    <article className="smart-recipe-card" key={recipe.id} onClick={() => setSelectedRecipe(recipe)}>
+                      <div className="smart-recipe-top"><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></div>
+                      <h3>{recipe.title}</h3><p>{recipe.reason}</p>
+                      <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
+                      <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
+                      <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
           ) : (
             <> 
           <section className="hero">
@@ -232,7 +263,7 @@ function App() {
               <h1>Good food<br /><em>starts here.</em></h1>
               <p>Turn what’s already in your kitchen into something worth sitting down for.</p>
               <div className="hero-actions">
-                <button className="primary" onClick={() => setActive("Recipes")}><Sparkles size={16} /> Find a recipe</button>
+                <button className="primary" onClick={generateRecipes}><Sparkles size={16} /> Find a recipe</button>
                 <button className="ghost" onClick={() => setShowAdd(true)}><Plus size={16} /> Add ingredient</button>
               </div>
             </div>
@@ -299,6 +330,19 @@ function App() {
           )}
         </div>
       </main>
+
+      {selectedRecipe && (
+        <div className="modal-backdrop" onMouseDown={() => setSelectedRecipe(null)}>
+          <div className="modal recipe-detail-modal" onMouseDown={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedRecipe(null)}><X size={18} /></button>
+            <span className="eyebrow"><Sparkles size={13} /> {selectedRecipe.match}% pantry match</span>
+            <h2>{selectedRecipe.title}</h2><p>{selectedRecipe.reason}</p>
+            <div className="nutrition-strip"><span><b>{selectedRecipe.nutrition.calories}</b> kcal</span><span><b>{selectedRecipe.nutrition.protein}g</b> protein</span><span><b>{selectedRecipe.nutrition.carbs}g</b> carbs</span><span><b>{selectedRecipe.nutrition.fat}g</b> fat</span></div>
+            <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
+            <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div className="modal-backdrop" onMouseDown={() => !pantryBusy && setEditing(null)}>
