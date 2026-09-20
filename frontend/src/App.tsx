@@ -329,11 +329,11 @@ function App() {
         setRecipeResults(fallback);
         setAiMessage(
           normalized.includes("quota") || normalized.includes("429")
-            ? "Gemini is currently unavailable because its API quota is exhausted. Showing pantry-engine recipes instead."
-            : "Gemini is temporarily unavailable. Showing pantry-engine recipes instead.",
+            ? "Nemotron is currently unavailable because its API quota is exhausted. Showing pantry-engine recipes instead."
+            : "Nemotron is temporarily unavailable. Showing pantry-engine recipes instead.",
         );
       } else {
-        setAiMessage("Gemini could not generate a recipe right now. Please try again later.");
+        setAiMessage("Nemotron could not generate a recipe right now. Please try again later.");
       }
     } finally {
       setAiBusy(false);
@@ -427,7 +427,7 @@ function App() {
                 <div>
                   <span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span>
                   <h2>What can you cook<br /><em>right now?</em></h2>
-                  <p>Ask Gemini to reason over your pantry, dietary preferences and time limit. Missing ingredients and practical substitutions stay visible.</p>
+                  <p>Ask Nemotron to reason over your pantry, dietary preferences and time limit. Missing ingredients and practical substitutions stay visible.</p>
                   <div className="ai-controls">
                     <label className="goal-field">GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
                     <CustomSelect label="TIME" value={aiMaxTime} onChange={(value) => setAiMaxTime(Number(value))} options={[{ value: 20, label: "20 min" }, { value: 30, label: "30 min" }, { value: 45, label: "45 min" }, { value: 60, label: "60 min" }]} />
@@ -435,7 +435,7 @@ function App() {
                     <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div>
                   </div>
                 </div>
-                <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Gemini..." : "Ask Gemini"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
+                <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
               {aiMessage && <div className="pantry-error">{aiMessage}</div>}
               {recipeResults.length === 0 ? (
