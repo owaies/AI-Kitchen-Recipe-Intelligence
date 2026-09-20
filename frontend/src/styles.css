@@ -243,3 +243,25 @@
   .shopping-row{grid-template-columns:34px 1fr 30px;gap:9px}
   .shopping-row>span{display:none}
 }
+
+/* Day 4: weekly meal planner */
+.meal-plan-page{padding-top:12px}.meal-plan-head{margin-bottom:22px}
+.meal-plan-head h2{font:500 clamp(38px,5vw,52px) "Playfair Display";margin:10px 0 5px}
+.meal-plan-head p{max-width:650px;color:var(--muted);font-size:12px;line-height:1.6;margin:0}
+.week-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 18px}
+.week-toolbar strong{font:500 18px "Playfair Display";color:var(--espresso)}
+.meal-plan-grid{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:8px}
+.meal-day{min-height:430px;background:var(--paper);border:1px solid #e3d9c8;border-radius:14px;overflow:hidden}
+.meal-day>header{padding:15px;border-bottom:1px solid #eee6d8;display:flex;justify-content:space-between;align-items:center}
+.meal-day>header span{font:9px "DM Mono";text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.meal-day>header strong{font:500 28px "Playfair Display";color:var(--olive)}
+.meal-slots{padding:8px}.meal-slot{min-height:83px;padding:9px;border-bottom:1px dashed #e5dccd}.meal-slot:last-child{border-bottom:0}
+.meal-slot>small{display:block;font:8px "DM Mono";text-transform:uppercase;letter-spacing:.07em;color:#9b9184;margin-bottom:7px}
+.meal-slot.filled{background:#f5f0e6;border-radius:9px;margin:4px 0;border-bottom:0}
+.planned-meal{position:relative;padding-right:22px}.planned-meal span{display:block;font:500 14px "Playfair Display";line-height:1.25;color:var(--espresso)}
+.planned-meal em{display:block;font:9px "DM Mono";color:var(--muted);margin-top:5px;line-height:1.35;font-style:normal}
+.planned-meal button{position:absolute;right:0;top:0;border:0;background:transparent;color:#a39a8d;padding:2px}.planned-meal button:hover{color:var(--tomato)}
+.slot-add{border:1px dashed #cfc3b0;background:transparent;color:var(--muted);border-radius:7px;width:100%;padding:7px;font:9px "DM Mono"}.slot-add:hover{border-color:var(--olive);color:var(--olive)}
+.meal-modal{max-width:560px}.meal-hint{display:flex;gap:7px;align-items:center;background:#eef0df;color:var(--olive);border-radius:9px;padding:10px 12px;font-size:10px;margin:12px 0}
+@media(max-width:900px){.meal-plan-grid{grid-template-columns:repeat(7,170px)}.meal-plan-head{align-items:flex-start}}
+@media(max-width:600px){.week-toolbar{flex-wrap:wrap}.week-toolbar strong{order:-1;width:100%}.meal-plan-grid{grid-template-columns:repeat(7,160px)}}
