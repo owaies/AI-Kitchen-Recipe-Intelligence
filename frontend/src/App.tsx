@@ -287,13 +287,27 @@ function App() {
       setActive("Recipes");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Gemini recipe generation is unavailable.";
-      if (message.includes("503") || message.toLowerCase().includes("high demand") || message.toLowerCase().includes("temporarily")) {
+      const normalized = message.toLowerCase();
+      const quotaUnavailable =
+        normalized.includes("429") ||
+        normalized.includes("quota") ||
+        normalized.includes("resource_exhausted") ||
+        normalized.includes("rate limit") ||
+        normalized.includes("high demand") ||
+        normalized.includes("temporarily") ||
+        normalized.includes("503");
+
+      if (quotaUnavailable) {
         const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
         const fallback = generateRecipeIntelligence(rows);
         setRecipeResults(fallback);
-        setAiMessage("Gemini is temporarily busy. Showing pantry-engine recipes while the online model recovers.");
+        setAiMessage(
+          normalized.includes("quota") || normalized.includes("429")
+            ? "Gemini is currently unavailable because its API quota is exhausted. Showing pantry-engine recipes instead."
+            : "Gemini is temporarily unavailable. Showing pantry-engine recipes instead.",
+        );
       } else {
-        setAiMessage(message);
+        setAiMessage("Gemini could not generate a recipe right now. Please try again later.");
       }
     } finally {
       setAiBusy(false);
