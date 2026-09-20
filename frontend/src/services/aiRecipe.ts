@@ -24,7 +24,7 @@ type AIResponse = {
   };
 };
 
-export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced dinner"): Promise<SmartRecipe> {
+export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced dinner", maxTimeMinutes = 45, dietaryPreferences: string[] = [], cuisine = "Any cuisine"): Promise<SmartRecipe> {
   if (!apiBase) throw new Error("AI backend URL is not configured.");
 
   const response = await fetch(`${apiBase}/api/recipes/generate`, {
@@ -35,6 +35,7 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
       goal,
       max_time_minutes: maxTimeMinutes,
       dietary_preferences: dietaryPreferences,
+      cuisine,
     }),
   });
 
