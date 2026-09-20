@@ -275,7 +275,7 @@ function App() {
   const detectPhotoIngredients = async () => {
     if (!photoPreview) return;
     setPhotoBusy(true);
-    setPhotoMessage("Gemini is examining the image...");
+    setPhotoMessage("OpenRouter vision is examining the image...");
     try {
       const detected = await detectIngredientsFromPhoto(photoPreview);
       setDetectedIngredients(detected);
@@ -303,7 +303,7 @@ function App() {
     setActive("Recipes");
   };
 
-  const generateGeminiRecipe = async () => {
+  const generateAIRecipeFromPantry = async () => {
     setAiBusy(true);
     setAiMessage("");
     try {
@@ -312,7 +312,7 @@ function App() {
       setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
       setActive("Recipes");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Gemini recipe generation is unavailable.";
+      const message = error instanceof Error ? error.message : "OpenRouter recipe generation is unavailable.";
       const normalized = message.toLowerCase();
       const quotaUnavailable =
         normalized.includes("429") ||
@@ -435,7 +435,7 @@ function App() {
                     <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div>
                   </div>
                 </div>
-                <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
+                <div className="recipe-actions"><button className="primary" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
               {aiMessage && <div className="pantry-error">{aiMessage}</div>}
               {recipeResults.length === 0 ? (
@@ -573,7 +573,7 @@ function App() {
             <p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p>
             <input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" />
             <label className="photo-option photo-upload"><Camera size={18} /><div><strong>Ingredient photo</strong><span>Upload a photo, then confirm ingredients before saving.</span></div><input type="file" accept="image/*" onChange={handleIngredientPhoto} /></label>
-            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">AI vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}<small>{Math.round(item.confidence * 100)}%</small></button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo..." : "Detect ingredients with Gemini"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
+            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">AI vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}<small>{Math.round(item.confidence * 100)}%</small></button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo..." : "Detect ingredients with OpenRouter"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
             <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
           </div>
         </div>
