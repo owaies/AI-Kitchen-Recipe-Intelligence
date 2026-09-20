@@ -89,6 +89,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(Boolean(supabase));
   const [active, setActive] = useState("Overview");
+  const [pageTransition, setPageTransition] = useState<"kitchen" | "cupboards" | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>(demoPantry);
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -160,6 +161,23 @@ function App() {
       })
       .catch((error) => console.error("Pantry load failed", error));
   }, [session]);
+
+  const navigateTo = (page: string) => {
+    if (page === active) return;
+
+    const scene = page === "Pantry" ? "cupboards" : page === "Overview" ? "kitchen" : null;
+
+    if (!scene) {
+      setActive(page);
+      return;
+    }
+
+    setPageTransition(scene);
+    window.setTimeout(() => {
+      setActive(page);
+      window.setTimeout(() => setPageTransition(null), 420);
+    }, 560);
+  };
 
   const filtered = useMemo(
     () => pantry.filter((item) => item.name.toLowerCase().includes(query.toLowerCase())),
@@ -324,7 +342,39 @@ function App() {
   if (supabase && !session) return <AuthScreen onAuthenticated={() => undefined} />;
 
   return (
-    <div className="app-shell">
+    <>
+      {pageTransition && (
+        <div className={`kitchen-transition ${pageTransition}`} aria-hidden="true">
+          <div className="transition-backdrop" />
+          {pageTransition === "kitchen" ? (
+            <div className="transition-scene kitchen-scene">
+              <div className="kitchen-window" />
+              <div className="kitchen-counter" />
+              <div className="kitchen-shelf shelf-one" />
+              <div className="kitchen-shelf shelf-two" />
+              <div className="kitchen-plant" />
+              <div className="transition-copy">
+                <span>Kitchen</span>
+                <strong>Welcome home.</strong>
+              </div>
+            </div>
+          ) : (
+            <div className="transition-scene cupboard-scene">
+              <div className="cupboard-frame">
+                <div className="cupboard-door door-left"><span /></div>
+                <div className="cupboard-door door-right"><span /></div>
+                <div className="cupboard-shelf-inner shelf-top" />
+                <div className="cupboard-shelf-inner shelf-bottom" />
+              </div>
+              <div className="transition-copy">
+                <span>Pantry</span>
+                <strong>Opening the cupboards.</strong>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-mark"><Utensils size={18} /></div>
@@ -333,7 +383,7 @@ function App() {
         <div className="side-label">Your kitchen</div>
         <nav>
           {["Overview", "Pantry", "Recipes", "Meal plan", "Shopping list"].map((item) => (
-            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => setActive(item)}>
+            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)}>
               <span>{item}</span><ChevronRight size={15} />
             </button>
           ))}
@@ -342,7 +392,7 @@ function App() {
           <Sparkles size={20} />
           <strong>Cook with what you have.</strong>
           <p>Your pantry has enough for 8 recipe ideas today.</p>
-          <button onClick={() => setActive("Recipes")}>Explore ideas <ArrowRight size={14} /></button>
+          <button onClick={() => navigateTo("Recipes")}>Explore ideas <ArrowRight size={14} /></button>
         </div>
         <div className="side-footer">Private kitchen workspace · v0.1</div>
       </aside>
@@ -447,7 +497,7 @@ function App() {
 
           <section className="section-head">
             <div><span className="eyebrow">Use it first</span><h2>Ingredients with a deadline</h2></div>
-            <button className="text-link" onClick={() => setActive("Pantry")}>View pantry <ArrowRight size={15} /></button>
+            <button className="text-link" onClick={() => navigateTo("Pantry")}>View pantry <ArrowRight size={15} /></button>
           </section>
           <section className="pantry-strip">
             {filtered.slice(0, 4).map((item) => (
@@ -461,7 +511,7 @@ function App() {
 
           <section className="section-head recipes-head">
             <div><span className="eyebrow">From your pantry</span><h2>Tonight's possibilities</h2></div>
-            <button className="text-link" onClick={() => setActive("Recipes")}>See all recipes <ArrowRight size={15} /></button>
+            <button className="text-link" onClick={() => navigateTo("Recipes")}>See all recipes <ArrowRight size={15} /></button>
           </section>
           <section className="recipe-grid">
             {recipes.map((recipe) => (
@@ -479,13 +529,13 @@ function App() {
 
           <section className="bottom-grid">
             <article className="plan-card">
-              <div><span className="eyebrow">This week</span><h2>A little plan<br /><em>goes a long way.</em></h2><p>Build a meal plan around what you already have and let the shopping list fill itself.</p><button className="dark-button" onClick={() => setActive("Meal plan")}>Open meal plan <CalendarDays size={15} /></button></div>
+              <div><span className="eyebrow">This week</span><h2>A little plan<br /><em>goes a long way.</em></h2><p>Build a meal plan around what you already have and let the shopping list fill itself.</p><button className="dark-button" onClick={() => navigateTo("Meal plan")}>Open meal plan <CalendarDays size={15} /></button></div>
               <div className="plan-plate">🥗</div>
             </article>
             <article className="shop-card">
               <div className="shop-title"><div><span className="eyebrow">Shopping list</span><h2>7 things to bring home.</h2></div><ShoppingBasket /></div>
               <div className="shop-items">{["Greek yogurt", "Lemons", "Parmesan"].map((item) => <label key={item}><input type="checkbox" /><span>{item}</span></label>)}</div>
-              <button className="text-link" onClick={() => setActive("Shopping list")}>Open full list <ArrowRight size={15} /></button>
+              <button className="text-link" onClick={() => navigateTo("Shopping list")}>Open full list <ArrowRight size={15} /></button>
             </article>
           </section>
             </>
