@@ -211,7 +211,15 @@ function App() {
       setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
       setActive("Recipes");
     } catch (error) {
-      setAiMessage(error instanceof Error ? error.message : "Gemini recipe generation is unavailable.");
+      const message = error instanceof Error ? error.message : "Gemini recipe generation is unavailable.";
+      if (message.includes("503") || message.toLowerCase().includes("high demand") || message.toLowerCase().includes("temporarily")) {
+        const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+        const fallback = generateRecipeIntelligence(rows);
+        setRecipeResults(fallback);
+        setAiMessage("Gemini is temporarily busy. Showing pantry-engine recipes while the online model recovers.");
+      } else {
+        setAiMessage(message);
+      }
     } finally {
       setAiBusy(false);
     }
