@@ -272,7 +272,7 @@ function App() {
 
   const generateRecipes = async () => {
     const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-    setRecipeResults(generateRecipeIntelligence(rows));
+    setRecipeResults(generateRecipeIntelligence(rows, aiCuisine));
     setAiMessage("");
     setActive("Recipes");
   };
