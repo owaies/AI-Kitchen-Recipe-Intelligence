@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.app.services.gemini import GeminiError, generate_recipe
+from backend.app.services.vision import detect_ingredients
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -18,6 +19,19 @@ class RecipeRequest(BaseModel):
     max_time_minutes: int = Field(default=45, ge=5, le=240)
     dietary_preferences: list[str] = Field(default_factory=list, max_length=10)
     cuisine: str = Field(default="Any cuisine", max_length=60)
+
+
+class VisionRequest(BaseModel):
+    image_data_url: str = Field(min_length=20, max_length=12_000_000)
+
+
+@router.post("/vision/ingredients")
+async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
+    try:
+        ingredients = await detect_ingredients(request.image_data_url)
+        return {"provider": "gemini", "ingredients": ingredients}
+    except GeminiError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.post("/generate")
