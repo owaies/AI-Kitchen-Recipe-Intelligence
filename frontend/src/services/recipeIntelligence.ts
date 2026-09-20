@@ -1,5 +1,6 @@
 import type { PantryRow } from "./pantry";
 import { indianRecipes } from "./indianRecipes";
+import { getRecipeImage } from "./recipeImages";
 
 export type SmartRecipe = {
   id: string;
@@ -14,6 +15,7 @@ export type SmartRecipe = {
   substitutions?: string[];
   steps: string[];
   nutrition: { calories: number; protein: number; carbs: number; fat: number };
+  image: string;
 };
 
 export type Template = {
@@ -153,7 +155,7 @@ export function generateRecipeIntelligence(pantry: PantryRow[], cuisine = "Any c
       const optionalHits = (template.optional ?? []).filter((ingredient) => names.some((name) => name.includes(ingredient)));
       const total = template.ingredients.length;
       const match = Math.round(((used.length + optionalHits.length * 0.15) / total) * 100);
-      return { ...template, id: normalize(template.title).replaceAll(" ", "-"), match: Math.min(99, match), used, missing };
+      return { ...template, id: normalize(template.title).replaceAll(" ", "-"), match: Math.min(99, match), used, missing, image: getRecipeImage(template.title, template.cuisine) };
     })
     .filter((recipe) => recipe.used.length > 0)
     .filter((recipe) => cuisine === "Any cuisine" || recipe.cuisine === cuisine)
