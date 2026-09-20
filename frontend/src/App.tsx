@@ -275,7 +275,7 @@ function App() {
   const detectPhotoIngredients = async () => {
     if (!photoPreview) return;
     setPhotoBusy(true);
-    setPhotoMessage("YOLO is examining the image...");
+    setPhotoMessage("BLIP is examining the image...");
     try {
       const detected = await detectIngredientsFromPhoto(photoPreview);
       setDetectedIngredients(detected);
@@ -573,7 +573,7 @@ function App() {
             <p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p>
             <input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" />
             <label className="photo-option photo-upload"><Camera size={18} /><div><strong>Ingredient photo</strong><span>Upload a photo, then confirm ingredients before saving.</span></div><input type="file" accept="image/*" onChange={handleIngredientPhoto} /></label>
-            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">YOLO vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}<small>{Math.round(item.confidence * 100)}%</small></button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo..." : "Detect ingredients with YOLO"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
+            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">BLIP vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}<small>{Math.round(item.confidence * 100)}%</small></button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo with BLIP..." : "Detect ingredients with BLIP"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
             <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
           </div>
         </div>
