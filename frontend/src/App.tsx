@@ -369,7 +369,7 @@ function App() {
         <div className="side-label">Your kitchen</div>
         <nav>
           {["Overview", "Pantry", "Recipes", "Meal plan", "Shopping list"].map((item) => (
-            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => setActive(item)}>
+            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)}>
               <span>{item}</span><ChevronRight size={15} />
             </button>
           ))}
@@ -577,7 +577,8 @@ function App() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
