@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backend.app.services.openrouter import OpenRouterError, generate_recipe
-from backend.app.services.vision import detect_ingredients
+from backend.app.services.vision import VisionError, detect_ingredients
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
@@ -29,8 +29,8 @@ class VisionRequest(BaseModel):
 async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
     try:
         ingredients = await detect_ingredients(request.image_data_url)
-        return {"provider": "OpenRouter", "ingredients": ingredients}
-    except OpenRouterError as exc:
+        return {"provider": "YOLO", "ingredients": ingredients}
+    except VisionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
