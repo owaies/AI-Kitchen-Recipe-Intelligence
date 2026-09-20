@@ -9,9 +9,10 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     openrouter_api_key: str = ""
     openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
-    openrouter_vision_model: str = "qwen/qwen2.5-vl-32b-instruct:free"
     openrouter_site_url: str = ""
     cors_origins: str = "http://localhost:5173"
+    yolo_model_path: str = "yolo11n.pt"
+    yolo_confidence: float = 0.35
 
     model_config = SettingsConfigDict(
         env_file=".env",
