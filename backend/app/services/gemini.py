@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import httpx
@@ -54,16 +55,21 @@ async def generate_recipe(prompt: str) -> dict:
     }
 
     headers = {"x-goog-api-key": settings.gemini_api_key}
+    last_detail = "Gemini is temporarily unavailable."
     async with httpx.AsyncClient(timeout=45) as client:
-        response = await client.post(url, headers=headers, json=payload)
+        for attempt in range(3):
+            response = await client.post(url, headers=headers, json=payload)
+            if response.is_success:
+                try:
+                    body = response.json()
+                    text = body["candidates"][0]["content"]["parts"][0]["text"]
+                    return json.loads(text)
+                except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+                    raise GeminiError("Gemini returned an invalid structured recipe response.") from exc
 
-    if response.is_error:
-        detail = response.text[:500]
-        raise GeminiError(f"Gemini request failed ({response.status_code}): {detail}")
+            last_detail = response.text[:500]
+            if response.status_code not in {429, 500, 502, 503, 504} or attempt == 2:
+                raise GeminiError(f"Gemini request failed ({response.status_code}): {last_detail}")
+            await asyncio.sleep(1.5 * (attempt + 1))
 
-    try:
-        body = response.json()
-        text = body["candidates"][0]["content"]["parts"][0]["text"]
-        return json.loads(text)
-    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
-        raise GeminiError("Gemini returned an invalid structured recipe response.") from exc
+    raise GeminiError(f"Gemini request failed after retries: {last_detail}")
