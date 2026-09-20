@@ -2,7 +2,7 @@ import json
 
 import httpx
 
-from app.core.config import settings
+from backend.app.core.config import settings
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
