@@ -5,6 +5,7 @@ Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
 } from "lucide-react";
 import AuthScreen from "./AuthScreen";
 import ShoppingList from "./ShoppingList";
+import MealPlanner from "./MealPlanner";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
@@ -367,6 +368,8 @@ function App() {
             </section>
           ) : active === "Shopping list" ? (
             <ShoppingList onRecipes={() => setActive("Recipes")} />
+          ) : active === "Meal plan" ? (
+            <MealPlanner />
           ) : active === "Recipes" ? (
             <section className="recipes-page">
               <div className="recipe-intelligence-hero">
