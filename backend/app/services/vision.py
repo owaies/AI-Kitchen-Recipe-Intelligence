@@ -1,9 +1,11 @@
+import asyncio
 import base64
 import io
-from functools import lru_cache
+import os
+import tempfile
 
 from PIL import Image
-from ultralytics import YOLO
+from gradio_client import Client, handle_file
 
 from backend.app.core.config import settings
 
@@ -12,42 +14,17 @@ class VisionError(RuntimeError):
     pass
 
 
-# COCO food classes available in the pretrained YOLO11n model.
-# This keeps the first version honest: custom ingredient classes require
-# a separately trained ingredient detector.
-FOOD_CLASSES = {
-    "apple",
-    "banana",
-    "broccoli",
-    "carrot",
-    "orange",
-    "sandwich",
-    "pizza",
-    "hot dog",
-    "donut",
-    "cake",
-}
-
-
-@lru_cache(maxsize=1)
-def get_model() -> YOLO:
-    try:
-        return YOLO(settings.yolo_model_path)
-    except Exception as exc:
-        raise VisionError(
-            "YOLO model could not be loaded. Set YOLO_MODEL_PATH to a valid YOLO11 model file."
-        ) from exc
-
-
 def _decode_image(image_data_url: str) -> Image.Image:
     if "," not in image_data_url or not image_data_url.startswith("data:image/"):
         raise VisionError("Invalid image data. Please upload a JPG, PNG, WEBP, or GIF image.")
 
     _, encoded = image_data_url.split(",", 1)
+
     try:
         image_bytes = base64.b64decode(encoded, validate=True)
         if len(image_bytes) > 8 * 1024 * 1024:
             raise VisionError("Image must be smaller than 8 MB.")
+
         return Image.open(io.BytesIO(image_bytes)).convert("RGB")
     except VisionError:
         raise
@@ -55,42 +32,65 @@ def _decode_image(image_data_url: str) -> Image.Image:
         raise VisionError("The uploaded image could not be decoded.") from exc
 
 
-async def detect_ingredients(image_data_url: str) -> list[dict]:
-    image = _decode_image(image_data_url)
-    model = get_model()
+def _normalize_answer(answer: str) -> list[dict]:
+    text = " ".join(str(answer).strip().lower().split())
+    if not text:
+        return []
 
+    replacements = {
+        "tomatoes": "tomato",
+        "potatoes": "potato",
+        "onions": "onion",
+        "carrots": "carrot",
+        "apples": "apple",
+        "bananas": "banana",
+        "eggs": "egg",
+        "lemons": "lemon",
+        "peppers": "pepper",
+        "capsicums": "capsicum",
+        "chilies": "chilli",
+        "chillies": "chilli",
+    }
+
+    # BLIP is VQA rather than object detection, so treat its answer as a
+    # candidate ingredient and keep confidence explicitly unavailable.
+    candidates = []
+    for part in text.replace(" and ", ",").split(","):
+        name = part.strip(" .;:-")
+        if not name:
+            continue
+        name = replacements.get(name, name)
+        if name not in {item["name"] for item in candidates}:
+            candidates.append({"name": name, "confidence": 0.0})
+
+    return candidates[:12]
+
+
+def _run_blip(image_path: str) -> object:
     try:
-        results = model.predict(
-            source=image,
-            conf=settings.yolo_confidence,
-            verbose=False,
+        client = Client(settings.huggingface_space_url)
+        return client.predict(
+            handle_file(image_path),
+            api_name="/detect_ingredient",
         )
     except Exception as exc:
-        raise VisionError("YOLO could not analyze the uploaded image.") from exc
+        raise VisionError(
+            "Hugging Face BLIP could not analyze the image."
+        ) from exc
 
-    detections: list[dict] = []
-    seen: set[str] = set()
 
-    for result in results:
-        if result.boxes is None:
-            continue
+async def detect_ingredients(image_data_url: str) -> list[dict]:
+    image = _decode_image(image_data_url)
 
-        names = result.names
-        for box in result.boxes:
-            class_id = int(box.cls.item())
-            name = str(names[class_id]).strip()
-            if name.lower() not in FOOD_CLASSES or name.lower() in seen:
-                continue
+    temp_path = ""
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
+            temp_path = temp.name
 
-            confidence = float(box.conf.item())
-            if confidence < settings.yolo_confidence:
-                continue
+        image.save(temp_path, format="JPEG", quality=90)
 
-            seen.add(name.lower())
-            detections.append({
-                "name": name,
-                "confidence": round(confidence, 2),
-            })
-
-    detections.sort(key=lambda item: item["confidence"], reverse=True)
-    return detections[:12]
+        answer = await asyncio.to_thread(_run_blip, temp_path)
+        return _normalize_answer(str(answer))
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
