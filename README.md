@@ -2,79 +2,62 @@
 
 AI-powered kitchen companion for turning ingredients into practical cooking decisions.
 
-## Project vision
+## Current AI architecture
+
+- Recipe intelligence: OpenRouter → `nvidia/nemotron-3.5-lightning:free`
+- Photo ingredient detection: YOLO11
+- Backend: Python + FastAPI
+- Frontend: React + TypeScript + Vite
+- Database/Auth: Supabase PostgreSQL + Supabase Auth + Row Level Security
+- Deployment: Vercel + Supabase
+
+## Product vision
 
 AI Kitchen & Recipe Intelligence combines pantry management, ingredient recognition, recipe intelligence, nutrition, meal planning, shopping lists, and expiry tracking in one private workspace.
 
-### Planned capabilities
+### Current capabilities
 
 - Secure user accounts with isolated personal kitchen data
 - Pantry inventory with quantities, units, categories, and expiry dates
 - Ingredient entry by text and photo
-- Ingredient recognition workflow with confidence-aware results
-- Recipe discovery and generation from available ingredients
-- Nutrition overview for recipes
+- YOLO-based photo ingredient detection workflow with confidence-aware results
+- Nemotron recipe generation from pantry ingredients
+- Deterministic pantry recipe fallback
 - Weekly meal planning
-- Automatic shopping-list generation
-- Saved recipes and cooking history
-- Dietary preferences and kitchen settings
-- Responsive, magazine-inspired culinary interface
+- Shopping-list workflow
+- Saved recipes
+- Dietary preferences and cuisine controls
+- Responsive culinary interface
 
-## Product direction
+## AI workflow
 
-**Modern Culinary Magazine**
+Photo → YOLO → ingredient candidates → user confirmation → Supabase Pantry
 
-Visual language:
+Pantry → OpenRouter → Nemotron → structured recipe → recipe workspace
 
-- Cream
-- Tomato red
-- Olive green
-- Espresso
-- Butter yellow
-- Warm paper surfaces
-- Editorial typography
-- Food-forward imagery
-- Tactile interactions and subtle motion
+## Important computer-vision limitation
 
-## Planned stack
+The current YOLO integration uses a pretrained YOLO11 model. Its class vocabulary is limited to the classes present in that pretrained model. It is not yet a custom kitchen-ingredient detector for ingredients such as tomato, onion, garlic, or paneer.
 
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-- Backend: Python + FastAPI
-- Database/Auth: Supabase PostgreSQL + Supabase Auth + Row Level Security
-- AI/vision: model/API selected according to the actual implementation and free-tier constraints
-- Deployment: Vercel + Supabase
+A custom kitchen-ingredient dataset and trained YOLO model is the next computer-vision improvement.
 
-## Development roadmap
+## Environment variables
 
-1. Foundation
-2. Backend and database
-3. Frontend and integration
-4. AI and advanced kitchen features
-5. Testing, polish, deployment, documentation
+Backend: copy `backend/.env.example` to `backend/.env`.
 
-## Current status
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=nvidia/nemotron-3.5-lightning:free
+OPENROUTER_SITE_URL=
+YOLO_MODEL_PATH=yolo11n.pt
+YOLO_CONFIDENCE=0.35
+CORS_ORIGINS=http://localhost:5173
 
-**Day 1 · Foundation**
+Never commit API keys or private credentials.
 
-The repository is initialized with the product vision and implementation roadmap. No production features or deployment are claimed yet.
+## Visual direction
 
+Modern Culinary Magazine: cream, tomato red, olive green, espresso, butter yellow, warm paper surfaces, editorial typography, food-forward imagery, and tactile motion.
 
-## Gemini recipe intelligence
+## Status
 
-The recipe workspace now supports an online Gemini generation path through the FastAPI backend.
-
-### Local setup
-
-1. Create a Gemini API key in Google's AI tooling.
-2. Copy `backend/.env.example` to `backend/.env`.
-3. Set `GEMINI_API_KEY` and keep the key out of Git.
-4. Keep `GEMINI_MODEL=gemini-2.5-flash` unless you intentionally switch to another compatible model.
-5. Set `VITE_API_BASE_URL` in `frontend/.env` to the running FastAPI URL.
-
-The browser never receives the Gemini key. The FastAPI service calls Gemini and requests a structured JSON recipe response.
-
-### AI fallback
-
-The existing deterministic pantry recipe engine remains available through **Use pantry engine**. Gemini is an enhancement, not a hard dependency for the local recipe-matching workflow.
-
-The current photo workflow is still a user-confirmation intake flow. It does not claim automatic ingredient recognition until a vision model is integrated and verified.
+The project is actively under development. Deployment and test results are documented only after verification.
