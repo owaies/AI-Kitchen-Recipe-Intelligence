@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.services.gemini import GeminiError, generate_recipe
+from backend.app.services.gemini import GeminiError, generate_recipe
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
