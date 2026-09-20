@@ -138,3 +138,33 @@
   .recipe-intelligence-hero .dietary-controls{grid-column:1/-1;flex-wrap:wrap}
   .recipe-actions{position:static;margin-top:18px;min-width:0}
 }
+
+/* Keep recipe menus above the following section instead of clipping them */
+.recipe-intelligence-hero{
+  overflow:visible;
+  z-index:10;
+}
+.recipe-intelligence-hero:after{
+  pointer-events:none;
+}
+.recipe-intelligence-hero .ai-controls,
+.recipe-intelligence-hero .custom-select-field{
+  position:relative;
+  z-index:20;
+}
+.recipe-intelligence-hero .custom-select-menu{
+  z-index:100;
+}
+.recipe-empty,
+.smart-recipe-grid{
+  position:relative;
+  z-index:1;
+}
+@media(max-width:760px){
+  .recipe-intelligence-hero{
+    overflow:visible;
+  }
+  .recipe-intelligence-hero .custom-select-menu{
+    max-height:220px;
+  }
+}
