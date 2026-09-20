@@ -29,7 +29,7 @@ class VisionRequest(BaseModel):
 async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
     try:
         ingredients = await detect_ingredients(request.image_data_url)
-        return {"provider": "YOLO", "ingredients": ingredients}
+        return {"provider": "Hugging Face BLIP", "ingredients": ingredients}
     except VisionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
