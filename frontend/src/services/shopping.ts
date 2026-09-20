@@ -41,6 +41,36 @@ export async function createShoppingItem(input: {
   return data as ShoppingItem;
 }
 
+export async function addUniqueShoppingItems(names: string[], source = "meal-plan") {
+  if (!supabase) return { added: 0, skipped: 0 };
+  const current = await listShoppingItems();
+  const existing = new Set(
+    current.filter((item) => !item.is_purchased).map((item) => item.name.trim().toLowerCase()),
+  );
+  const uniqueNames = Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
+  let added = 0;
+  let skipped = 0;
+
+  for (const name of uniqueNames) {
+    const key = name.toLowerCase();
+    if (existing.has(key)) {
+      skipped += 1;
+      continue;
+    }
+    await createShoppingItem({
+      name,
+      quantity: 1,
+      unit: "item",
+      category: "Meal plan",
+      source,
+    });
+    existing.add(key);
+    added += 1;
+  }
+
+  return { added, skipped };
+}
+
 export async function toggleShoppingItem(id: string, isPurchased: boolean) {
   if (!supabase) return null;
   const { data, error } = await supabase.from("shopping_items").update({ is_purchased: isPurchased }).eq("id", id).select(fields).single();
