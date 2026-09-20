@@ -9,6 +9,7 @@ import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
 import { generateAIRecipe } from "./services/aiRecipe";
+import { saveGeneratedRecipe } from "./services/savedRecipes";
 import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
@@ -53,6 +54,10 @@ function App() {
   const [recipeResults, setRecipeResults] = useState<SmartRecipe[]>([]);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
+  const [aiGoal, setAiGoal] = useState("a practical dinner using the pantry");
+  const [aiMaxTime, setAiMaxTime] = useState(45);
+  const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
+  const [saveBusy, setSaveBusy] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState("");
@@ -207,7 +212,7 @@ function App() {
     setAiMessage("");
     try {
       const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-      const recipe = await generateAIRecipe(rows, "a practical dinner using the pantry");
+      const recipe = await generateAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences);
       setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
       setActive("Recipes");
     } catch (error) {
@@ -294,7 +299,16 @@ function App() {
           ) : active === "Recipes" ? (
             <section className="recipes-page">
               <div className="recipe-intelligence-hero">
-                <div><span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span><h2>What can you cook<br /><em>right now?</em></h2><p>Recipes are matched against ingredients you already have, with missing items clearly separated.</p></div>
+                <div>
+                  <span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span>
+                  <h2>What can you cook<br /><em>right now?</em></h2>
+                  <p>Ask Gemini to reason over your pantry, dietary preferences and time limit. Missing ingredients and practical substitutions stay visible.</p>
+                  <div className="ai-controls">
+                    <label>GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
+                    <label>TIME<select value={aiMaxTime} onChange={(e) => setAiMaxTime(Number(e.target.value))} aria-label="Maximum cooking time"><option value={20}>20 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option></select></label>
+                    <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}</button>)}</div>
+                  </div>
+                </div>
                 <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Gemini..." : "Ask Gemini"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
               {aiMessage && <div className="pantry-error">{aiMessage}</div>}
@@ -398,7 +412,9 @@ function App() {
             <h2>{selectedRecipe.title}</h2><p>{selectedRecipe.reason}</p>
             <div className="nutrition-strip"><span><b>{selectedRecipe.nutrition.calories}</b> kcal</span><span><b>{selectedRecipe.nutrition.protein}g</b> protein</span><span><b>{selectedRecipe.nutrition.carbs}g</b> carbs</span><span><b>{selectedRecipe.nutrition.fat}g</b> fat</span></div>
             <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
+            {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
             <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
+            <button className="primary full save-generated" disabled={saveBusy} onClick={async () => { setSaveBusy(true); try { await saveGeneratedRecipe(selectedRecipe); setSaved((items) => items.includes(selectedRecipe.title) ? items : [...items, selectedRecipe.title]); setAiMessage("Recipe saved to your private collection."); } catch (error) { setAiMessage(error instanceof Error ? error.message : "Could not save recipe."); } finally { setSaveBusy(false); } }}>{saveBusy ? "Saving..." : saved.includes(selectedRecipe.title) ? "Saved to collection ✓" : "Save recipe to collection"}</button>
           </div>
         </div>
       )}
