@@ -8,6 +8,7 @@ import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
+import { createShoppingItem, deleteShoppingItem, listShoppingItems, toggleShoppingItem, type ShoppingItem } from "./services/shopping";
 import { generateAIRecipe } from "./services/aiRecipe";
 import { saveGeneratedRecipe } from "./services/savedRecipes";
 import { detectIngredientsFromPhoto, type DetectedIngredient } from "./services/vision";
@@ -115,6 +116,9 @@ function App() {
   const [detectedIngredients, setDetectedIngredients] = useState<DetectedIngredient[]>([]);
   const [photoMessage, setPhotoMessage] = useState("");
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  const [shoppingInput, setShoppingInput] = useState("");
+  const [shoppingBusy, setShoppingBusy] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -157,6 +161,13 @@ function App() {
         })));
       })
       .catch((error) => console.error("Pantry load failed", error));
+  }, [session]);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+    listShoppingItems()
+      .then(setShoppingItems)
+      .catch((error) => console.error("Shopping list load failed", error));
   }, [session]);
 
   const filtered = useMemo(
@@ -298,7 +309,63 @@ function App() {
     }
   };
 
-  const saveRecipe = (title: string) => {
+  const addShoppingItem = async (name: string, source = "manual") => {
+    const clean = name.trim();
+    if (!clean || shoppingBusy) return;
+    setShoppingBusy(true);
+    try {
+      if (session) {
+        const row = await createShoppingItem({ name: clean, quantity: 1, unit: "item", category: "To buy", source });
+        if (row) setShoppingItems((items) => [row, ...items]);
+      } else {
+        setShoppingItems((items) => [{
+          id: "local-" + Date.now(),
+          name: clean,
+          quantity: 1,
+          unit: "item",
+          category: "To buy",
+          is_purchased: false,
+          source,
+        }, ...items]);
+      }
+      setShoppingInput("");
+    } catch (error) {
+      setAiMessage(error instanceof Error ? error.message : "Could not add shopping item.");
+    } finally {
+      setShoppingBusy(false);
+    }
+  };
+
+  const toggleShopping = async (item: ShoppingItem) => {
+    const next = !item.is_purchased;
+    setShoppingItems((items) => items.map((entry) => entry.id === item.id ? { ...entry, is_purchased: next } : entry));
+    try {
+      if (session) await toggleShoppingItem(item.id, next);
+    } catch (error) {
+      setShoppingItems((items) => items.map((entry) => entry.id === item.id ? { ...entry, is_purchased: item.is_purchased } : entry));
+      setAiMessage(error instanceof Error ? error.message : "Could not update shopping item.");
+    }
+  };
+
+  const removeShopping = async (item: ShoppingItem) => {
+    try {
+      if (session) await deleteShoppingItem(item.id);
+      setShoppingItems((items) => items.filter((entry) => entry.id !== item.id));
+    } catch (error) {
+      setAiMessage(error instanceof Error ? error.message : "Could not remove shopping item.");
+    }
+  };
+
+  const addMissingIngredientsToShopping = async (recipe: SmartRecipe) => {
+    for (const item of recipe.missing) {
+      if (!shoppingItems.some((existing) => existing.name.toLowerCase() === item.toLowerCase() && !existing.is_purchased)) {
+        await addShoppingItem(item, "recipe");
+      }
+    }
+    setActive("Shopping list");
+  };
+
+  const saveRecipe = (title: string) =>
     setSaved((items) =>
       items.includes(title) ? items.filter((item) => item !== title) : [...items, title],
     );
@@ -360,6 +427,40 @@ function App() {
                     <span>{item.amount}</span><span>{item.category}</span>
                     <span className={item.days <= 2 ? "expiry urgent-text" : "expiry"}>{item.expiry}</span>
                     <div className="row-actions"><button onClick={() => openEdit(item)}>Edit</button><button className="danger-link" onClick={() => removePantryItem(item)} disabled={pantryBusy}>Delete</button></div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : active === "Shopping list" ? (
+            <section className="shopping-page">
+              <div className="section-head shopping-page-head">
+                <div>
+                  <span className="eyebrow"><ShoppingBasket size={13} /> Grocery intelligence</span>
+                  <h2>Your shopping list</h2>
+                  <p>Turn missing recipe ingredients into a focused list, then check them off as you shop.</p>
+                </div>
+                <div className="shopping-progress"><strong>{shoppingItems.filter((item) => item.is_purchased).length}/{shoppingItems.length}</strong><span>purchased</span></div>
+              </div>
+
+              <div className="shopping-add">
+                <input value={shoppingInput} onChange={(e) => setShoppingInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addShoppingItem(shoppingInput)} placeholder="Add milk, coriander, parmesan..." />
+                <button className="primary" onClick={() => addShoppingItem(shoppingInput)} disabled={shoppingBusy}><Plus size={15} /> Add item</button>
+              </div>
+
+              <div className="shopping-board">
+                {shoppingItems.length === 0 ? (
+                  <div className="shopping-empty">
+                    <ShoppingBasket size={30} />
+                    <strong>Your list is clear.</strong>
+                    <span>Generate a recipe with missing ingredients, then add them here in one click.</span>
+                    <button className="ghost" onClick={() => setActive("Recipes")}>Explore recipes <ArrowRight size={14} /></button>
+                  </div>
+                ) : shoppingItems.map((item) => (
+                  <article className={item.is_purchased ? "shopping-row purchased" : "shopping-row"} key={item.id}>
+                    <button className="shopping-check" onClick={() => toggleShopping(item)} aria-label={item.is_purchased ? "Mark not purchased" : "Mark purchased"}><Check size={15} /></button>
+                    <div><strong>{item.name}</strong><small>{item.source === "recipe" ? "From recipe" : "Added manually"}</small></div>
+                    <span>{item.quantity ?? 1} {item.unit ?? "item"}</span>
+                    <button className="shopping-remove" onClick={() => removeShopping(item)} aria-label={"Remove " + item.name}><X size={15} /></button>
                   </article>
                 ))}
               </div>
