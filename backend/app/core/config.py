@@ -7,8 +7,9 @@ class Settings(BaseSettings):
     database_url: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-3.6-flash"
+    openrouter_api_key: str = ""
+    openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
+    openrouter_site_url: str = ""
     cors_origins: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
