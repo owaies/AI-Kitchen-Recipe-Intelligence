@@ -41,6 +41,9 @@ Rules:
 - Prefer ingredients already in the pantry.
 - Clearly list anything missing instead of pretending it is available.
 - Keep the recipe realistic for a home kitchen.
+- Respect every dietary preference. Never include a clearly incompatible ingredient.
+- Offer practical substitutions when a useful pantry ingredient can replace a missing one.
+- Keep the generated recipe within the requested maximum time.
 - Nutrition values are estimates, not medical advice.
 - Return only the requested JSON structure.
 """.strip()
