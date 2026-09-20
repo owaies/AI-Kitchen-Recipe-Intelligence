@@ -1,4 +1,5 @@
 import type { PantryRow } from "./pantry";
+import { indianRecipes } from "./indianRecipes";
 
 export type SmartRecipe = {
   id: string;
@@ -28,6 +29,7 @@ export type Template = {
 };
 
 const templates: Template[] = [
+  ...indianRecipes,
   {
     title: "Tomato & Basil Toast",
     cuisine: "Mediterranean",
@@ -142,7 +144,7 @@ const templates: Template[] = [
 
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
 
-export function generateRecipeIntelligence(pantry: PantryRow[]): SmartRecipe[] {
+export function generateRecipeIntelligence(pantry: PantryRow[], cuisine = "Any cuisine"): SmartRecipe[] {
   const names = pantry.map((item) => normalize(item.name));
   return templates
     .map((template) => {
@@ -154,7 +156,8 @@ export function generateRecipeIntelligence(pantry: PantryRow[]): SmartRecipe[] {
       return { ...template, id: normalize(template.title).replaceAll(" ", "-"), match: Math.min(99, match), used, missing };
     })
     .filter((recipe) => recipe.used.length > 0)
+    .filter((recipe) => cuisine === "Any cuisine" || recipe.cuisine === cuisine)
     .sort((a, b) => b.match - a.match)
-    .slice(0, 6)
+    .slice(0, cuisine === "Indian" ? 24 : 6)
     .map(({ ingredients, optional, ...recipe }) => recipe as SmartRecipe);
 }
