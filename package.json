@@ -1,0 +1,7 @@
+{
+  "name": "ai-kitchen-recipe-intelligence",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build"
+  }
+}
