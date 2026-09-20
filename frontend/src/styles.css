@@ -205,3 +205,41 @@
     max-height:220px;
   }
 }
+
+/* Day 4: shopping list workspace */
+.shopping-page{padding-top:12px}
+.shopping-page-head{margin-bottom:24px}
+.shopping-page-head h2{font:500 clamp(38px,5vw,52px) "Playfair Display";margin:10px 0 5px}
+.shopping-page-head p{max-width:620px;color:var(--muted);font-size:12px;line-height:1.6;margin:0}
+.shopping-progress{min-width:110px;text-align:right}
+.shopping-progress strong{display:block;font:500 30px "Playfair Display";color:var(--olive)}
+.shopping-progress span{font:9px "DM Mono";text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.shopping-add{display:flex;gap:10px;background:var(--olive);padding:16px;border-radius:15px;margin-bottom:18px}
+.shopping-add input{flex:1;min-width:0;border:1px solid #ffffff45;background:#ffffff12;color:#fff;border-radius:9px;padding:12px 14px;outline:0}
+.shopping-add input::placeholder{color:#e8ebdf99}
+.shopping-add .primary{background:var(--butter);color:var(--espresso);white-space:nowrap}
+.shopping-board{background:var(--paper);border:1px solid #e3d9c8;border-radius:16px;overflow:hidden}
+.shopping-row{display:grid;grid-template-columns:40px 1fr 110px 36px;gap:12px;align-items:center;padding:15px 18px;border-bottom:1px solid #eee6d8}
+.shopping-row:last-child{border-bottom:0}
+.shopping-row strong{display:block;font:500 17px "Playfair Display"}
+.shopping-row small{display:block;font:9px "DM Mono";color:var(--muted);margin-top:3px}
+.shopping-row>span{font:10px "DM Mono";color:var(--muted)}
+.shopping-check{width:30px;height:30px;border-radius:50%;border:1px solid #cfc3b0;background:transparent;color:transparent;display:grid;place-items:center}
+.shopping-row.purchased .shopping-check{background:var(--olive);border-color:var(--olive);color:#fff}
+.shopping-row.purchased strong{text-decoration:line-through;color:#a49a8c}
+.shopping-remove{border:0;background:transparent;color:#a49a8c;width:30px;height:30px;border-radius:50%;display:grid;place-items:center}
+.shopping-remove:hover{background:#f2e4dc;color:var(--tomato)}
+.shopping-empty{min-height:300px;display:grid;place-items:center;align-content:center;gap:10px;text-align:center;color:var(--muted);padding:35px}
+.shopping-empty svg{color:var(--olive)}
+.shopping-empty strong{font:500 28px "Playfair Display";color:var(--espresso)}
+.shopping-empty span{max-width:420px;font-size:11px;line-height:1.6}
+.shopping-empty .ghost{margin-top:5px}
+.save-generated + .ghost{margin-top:9px}
+@media(max-width:760px){
+  .shopping-page-head{align-items:start}
+  .shopping-progress{text-align:left}
+  .shopping-add{flex-direction:column}
+  .shopping-add .primary{justify-content:center}
+  .shopping-row{grid-template-columns:34px 1fr 30px;gap:9px}
+  .shopping-row>span{display:none}
+}
