@@ -4,7 +4,7 @@ import type { SmartRecipe } from "./recipeIntelligence";
 const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
 
 type AIResponse = {
-  provider: "gemini";
+  provider: "OpenRouter";
   recipe: {
     title: string;
     cuisine: string;
@@ -40,7 +40,7 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
   });
 
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.detail ?? "Gemini recipe generation failed.");
+  if (!response.ok) throw new Error(body.detail ?? "OpenRouter recipe generation failed.");
 
   const recipe = (body as AIResponse).recipe;
   const used = recipe.used_ingredients ?? [];
@@ -49,7 +49,7 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
   const match = total ? Math.round((used.length / total) * 100) : 0;
 
   return {
-    id: `gemini-${recipe.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    id: `openrouter-${recipe.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     title: recipe.title,
     cuisine: recipe.cuisine,
     time: recipe.time_minutes,
