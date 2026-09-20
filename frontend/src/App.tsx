@@ -89,7 +89,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(Boolean(supabase));
   const [active, setActive] = useState("Overview");
-  const [pageTransition, setPageTransition] = useState<"kitchen" | "cupboards" | null>(null);
+  const [transitionScene, setTransitionScene] = useState<"kitchen" | "cupboards" | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>(demoPantry);
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -165,18 +165,16 @@ function App() {
   const navigateTo = (page: string) => {
     if (page === active) return;
 
-    const scene = page === "Pantry" ? "cupboards" : page === "Overview" ? "kitchen" : null;
-
-    if (!scene) {
-      setActive(page);
+    if (page === "Overview" || page === "Pantry") {
+      setTransitionScene(page === "Pantry" ? "cupboards" : "kitchen");
+      window.setTimeout(() => {
+        setActive(page);
+        window.setTimeout(() => setTransitionScene(null), 350);
+      }, 500);
       return;
     }
 
-    setPageTransition(scene);
-    window.setTimeout(() => {
-      setActive(page);
-      window.setTimeout(() => setPageTransition(null), 420);
-    }, 560);
+    setActive(page);
   };
 
   const filtered = useMemo(
@@ -343,35 +341,23 @@ function App() {
 
   return (
     <>
-      {pageTransition && (
-        <div className={`kitchen-transition ${pageTransition}`} aria-hidden="true">
-          <div className="transition-backdrop" />
-          {pageTransition === "kitchen" ? (
-            <div className="transition-scene kitchen-scene">
-              <div className="kitchen-window" />
-              <div className="kitchen-counter" />
-              <div className="kitchen-shelf shelf-one" />
-              <div className="kitchen-shelf shelf-two" />
-              <div className="kitchen-plant" />
-              <div className="transition-copy">
-                <span>Kitchen</span>
-                <strong>Welcome home.</strong>
+      {transitionScene && (
+        <div className={`kitchen-transition ${transitionScene}`} aria-hidden="true">
+          <div className="transition-scene">
+            {transitionScene === "kitchen" ? (
+              <div className="kitchen-transition-image">
+                <div className="transition-copy"><span>Kitchen</span><strong>Welcome home.</strong></div>
               </div>
-            </div>
-          ) : (
-            <div className="transition-scene cupboard-scene">
-              <div className="cupboard-frame">
-                <div className="cupboard-door door-left"><span /></div>
-                <div className="cupboard-door door-right"><span /></div>
-                <div className="cupboard-shelf-inner shelf-top" />
-                <div className="cupboard-shelf-inner shelf-bottom" />
+            ) : (
+              <div className="cupboard-transition-image">
+                <div className="cupboard-doors">
+                  <span className="cupboard-door-left" />
+                  <span className="cupboard-door-right" />
+                </div>
+                <div className="transition-copy"><span>Pantry</span><strong>Opening the cupboards.</strong></div>
               </div>
-              <div className="transition-copy">
-                <span>Pantry</span>
-                <strong>Opening the cupboards.</strong>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
       <div className="app-shell">
@@ -383,7 +369,7 @@ function App() {
         <div className="side-label">Your kitchen</div>
         <nav>
           {["Overview", "Pantry", "Recipes", "Meal plan", "Shopping list"].map((item) => (
-            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)}>
+            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => setActive(item)}>
               <span>{item}</span><ChevronRight size={15} />
             </button>
           ))}
