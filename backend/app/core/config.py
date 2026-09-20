@@ -10,9 +10,8 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_site_url: str = ""
+    huggingface_space_url: str = "https://owaies-kitchen-ingredient-detector.hf.space"
     cors_origins: str = "http://localhost:5173"
-    yolo_model_path: str = "yolo11n.pt"
-    yolo_confidence: float = 0.35
 
     model_config = SettingsConfigDict(
         env_file=".env",
