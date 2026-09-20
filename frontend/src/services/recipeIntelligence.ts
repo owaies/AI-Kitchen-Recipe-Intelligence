@@ -15,7 +15,7 @@ export type SmartRecipe = {
   nutrition: { calories: number; protein: number; carbs: number; fat: number };
 };
 
-type Template = {
+export type Template = {
   title: string;
   cuisine: string;
   time: number;
