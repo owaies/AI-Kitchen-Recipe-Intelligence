@@ -407,11 +407,11 @@ function App() {
                 <div className="smart-recipe-grid">
                   {recipeResults.map((recipe) => (
                     <article className="smart-recipe-card" key={recipe.id} onClick={() => setSelectedRecipe(recipe)}>
-                      <div className="smart-recipe-top"><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></div>
-                      <h3>{recipe.title}</h3><p>{recipe.reason}</p>
+                      <div className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></div>
+                      <div className="smart-recipe-content"><h3>{recipe.title}</h3><p>{recipe.reason}</p>
                       <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
                       <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
-                      <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div>
+                      <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
                     </article>
                   ))}
                 </div>
@@ -497,6 +497,7 @@ function App() {
         <div className="modal-backdrop" onMouseDown={() => setSelectedRecipe(null)}>
           <div className="modal recipe-detail-modal" onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedRecipe(null)}><X size={18} /></button>
+            <div className="recipe-detail-image"><img src={selectedRecipe.image} alt="" /></div>
             <span className="eyebrow"><Sparkles size={13} /> {selectedRecipe.match}% pantry match</span>
             <h2>{selectedRecipe.title}</h2><p>{selectedRecipe.reason}</p>
             <div className="nutrition-strip"><span><b>{selectedRecipe.nutrition.calories}</b> kcal</span><span><b>{selectedRecipe.nutrition.protein}g</b> protein</span><span><b>{selectedRecipe.nutrition.carbs}g</b> carbs</span><span><b>{selectedRecipe.nutrition.fat}g</b> fat</span></div>
