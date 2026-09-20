@@ -17,6 +17,7 @@ class RecipeRequest(BaseModel):
     goal: str = Field(default="balanced dinner", max_length=200)
     max_time_minutes: int = Field(default=45, ge=5, le=240)
     dietary_preferences: list[str] = Field(default_factory=list, max_length=10)
+    cuisine: str = Field(default="Any cuisine", max_length=60)
 
 
 @router.post("/generate")
@@ -36,9 +37,11 @@ Pantry: {pantry_text}
 Goal: {request.goal}
 Maximum cooking time: {request.max_time_minutes} minutes
 Dietary preferences: {preferences}
+Preferred cuisine: {request.cuisine}
 
 Rules:
 - Prefer ingredients already in the pantry.
+- Follow the preferred cuisine when one is selected. If it is Any cuisine, choose the cuisine that best fits the pantry.
 - Clearly list anything missing instead of pretending it is available.
 - Keep the recipe realistic for a home kitchen.
 - Respect every dietary preference. Never include a clearly incompatible ingredient.
