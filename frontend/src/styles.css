@@ -265,3 +265,8 @@
 .meal-modal{max-width:560px}.meal-hint{display:flex;gap:7px;align-items:center;background:#eef0df;color:var(--olive);border-radius:9px;padding:10px 12px;font-size:10px;margin:12px 0}
 @media(max-width:900px){.meal-plan-grid{grid-template-columns:repeat(7,170px)}.meal-plan-head{align-items:flex-start}}
 @media(max-width:600px){.week-toolbar{flex-wrap:wrap}.week-toolbar strong{order:-1;width:100%}.meal-plan-grid{grid-template-columns:repeat(7,160px)}}
+
+
+/* Meal plan actions */
+.meal-plan-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.meal-plan-actions .ghost,.meal-plan-actions .primary{white-space:nowrap}.meal-plan-actions .ghost:disabled{opacity:.6;cursor:wait}
+@media(max-width:600px){.meal-plan-actions{width:100%}.meal-plan-actions .ghost,.meal-plan-actions .primary{flex:1;justify-content:center}}
