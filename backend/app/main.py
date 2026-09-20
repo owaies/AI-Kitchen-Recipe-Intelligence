@@ -7,7 +7,7 @@ from backend.app.core.config import settings
 app = FastAPI(
     title="AI Kitchen & Recipe Intelligence API",
     version="0.2.0",
-    description="Backend API for private pantry, recipe, meal-planning, shopping, and Gemini-powered recipe workflows.",
+    description="Backend API for private pantry, recipe, meal-planning, shopping, and OpenRouter-powered AI workflows.",
 )
 
 app.add_middleware(
