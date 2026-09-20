@@ -10,6 +10,7 @@ export type SmartRecipe = {
   used: string[];
   missing: string[];
   reason: string;
+  substitutions?: string[];
   steps: string[];
   nutrition: { calories: number; protein: number; carbs: number; fat: number };
 };
