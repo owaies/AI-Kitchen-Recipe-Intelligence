@@ -1,0 +1,142 @@
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, Check, Plus, Trash2, X } from "lucide-react";
+import { supabase } from "./lib/supabase";
+import { createMealPlan, deleteMealPlan, listMealPlans, listSavedRecipeOptions, type MealPlanRow, type SavedRecipeOption } from "./services/mealPlans";
+
+const meals: { value: MealPlanRow["meal_type"]; label: string }[] = [
+  { value: "breakfast", label: "Breakfast" },
+  { value: "lunch", label: "Lunch" },
+  { value: "dinner", label: "Dinner" },
+  { value: "snack", label: "Snack" },
+];
+
+function iso(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+function startOfWeek(date: Date) {
+  const copy = new Date(date);
+  const day = copy.getDay();
+  copy.setDate(copy.getDate() - (day === 0 ? 6 : day - 1));
+  copy.setHours(12, 0, 0, 0);
+  return copy;
+}
+function prettyDate(value: string) {
+  return new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short" }).format(new Date(value + "T12:00:00"));
+}
+
+export default function MealPlanner() {
+  const [week, setWeek] = useState(() => startOfWeek(new Date()));
+  const [plans, setPlans] = useState<MealPlanRow[]>([]);
+  const [savedRecipes, setSavedRecipes] = useState<SavedRecipeOption[]>([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [date, setDate] = useState(iso(startOfWeek(new Date())));
+  const [mealType, setMealType] = useState<MealPlanRow["meal_type"]>("dinner");
+  const [recipeId, setRecipeId] = useState("");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const days = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const value = new Date(week);
+    value.setDate(value.getDate() + index);
+    return iso(value);
+  }), [week]);
+
+  useEffect(() => {
+    setDate(days[0]);
+    if (!supabase) return;
+    Promise.all([listMealPlans(days[0], days[6]), listSavedRecipeOptions()])
+      .then(([nextPlans, nextRecipes]) => { setPlans(nextPlans); setSavedRecipes(nextRecipes); })
+      .catch((error) => setMessage(error instanceof Error ? error.message : "Could not load your meal plan."));
+  }, [days]);
+
+  const recipeName = (id: string | null) => savedRecipes.find((recipe) => recipe.id === id)?.title ?? null;
+
+  const add = async () => {
+    if (!date || busy) return;
+    setBusy(true); setMessage("");
+    try {
+      if (supabase) {
+        const row = await createMealPlan({ plan_date: date, meal_type: mealType, recipe_id: recipeId || null, notes: notes.trim() || null });
+        if (row) setPlans((items) => [...items, row]);
+      } else {
+        setPlans((items) => [...items, { id: "local-" + Date.now(), plan_date: date, meal_type: mealType, recipe_id: null, notes: notes.trim() || null }]);
+      }
+      setShowAdd(false); setNotes(""); setRecipeId("");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not add meal.");
+    } finally { setBusy(false); }
+  };
+
+  const remove = async (id: string) => {
+    setPlans((items) => items.filter((item) => item.id !== id));
+    if (supabase) {
+      try { await deleteMealPlan(id); }
+      catch (error) { setMessage(error instanceof Error ? error.message : "Could not remove meal."); }
+    }
+  };
+
+  return (
+    <section className="meal-plan-page">
+      <div className="section-head meal-plan-head">
+        <div>
+          <span className="eyebrow"><CalendarDays size={13} /> Weekly rhythm</span>
+          <h2>A plan worth cooking.</h2>
+          <p>Place saved recipes across the week, keep a note for each meal, and turn planning into a grocery-ready routine.</p>
+        </div>
+        <button className="primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Plan a meal</button>
+      </div>
+
+      {message && <div className="pantry-error">{message}</div>}
+
+      <div className="week-toolbar">
+        <button className="ghost" onClick={() => setWeek((current) => new Date(current.getTime() - 7 * 86400000))}>← Previous</button>
+        <strong>{prettyDate(days[0])} · {prettyDate(days[6])}</strong>
+        <button className="ghost" onClick={() => setWeek((current) => new Date(current.getTime() + 7 * 86400000))}>Next →</button>
+      </div>
+
+      <div className="meal-plan-grid">
+        {days.map((day) => (
+          <article className="meal-day" key={day}>
+            <header><span>{new Intl.DateTimeFormat("en-IN", { weekday: "long" }).format(new Date(day + "T12:00:00"))}</span><strong>{new Date(day + "T12:00:00").getDate()}</strong></header>
+            <div className="meal-slots">
+              {meals.map((meal) => {
+                const planned = plans.find((item) => item.plan_date === day && item.meal_type === meal.value);
+                return (
+                  <div className={planned ? "meal-slot filled" : "meal-slot"} key={meal.value}>
+                    <small>{meal.label}</small>
+                    {planned ? (
+                      <div className="planned-meal">
+                        <span>{recipeName(planned.recipe_id) ?? planned.notes ?? "Kitchen idea"}</span>
+                        {planned.notes && recipeName(planned.recipe_id) && <em>{planned.notes}</em>}
+                        <button onClick={() => remove(planned.id)} aria-label={"Remove " + meal.label}><Trash2 size={12} /></button>
+                      </div>
+                    ) : <button className="slot-add" onClick={() => { setDate(day); setMealType(meal.value); setShowAdd(true); }}>+ Add</button>}
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {showAdd && (
+        <div className="modal-backdrop" onMouseDown={() => !busy && setShowAdd(false)}>
+          <div className="modal meal-modal" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowAdd(false)}><X size={18} /></button>
+            <span className="eyebrow"><CalendarDays size={13} /> Meal plan</span>
+            <h2>Plan a meal</h2>
+            <div className="edit-grid">
+              <label>DATE<input type="date" value={date} onChange={(event) => setDate(event.target.value)} /></label>
+              <label>MEAL<select value={mealType} onChange={(event) => setMealType(event.target.value as MealPlanRow["meal_type"])}>{meals.map((meal) => <option key={meal.value} value={meal.value}>{meal.label}</option>)}</select></label>
+              <label className="full-field">SAVED RECIPE<select value={recipeId} onChange={(event) => setRecipeId(event.target.value)}><option value="">Kitchen idea / note only</option>{savedRecipes.map((recipe) => <option key={recipe.id} value={recipe.id}>{recipe.title}</option>)}</select></label>
+              <label className="full-field">NOTE<input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="e.g. add extra lemon, use the spinach first" /></label>
+            </div>
+            {savedRecipes.length === 0 && <div className="meal-hint"><Check size={14} /> Save a generated recipe first to attach it to this meal.</div>}
+            <button className="primary full" onClick={add} disabled={busy}>{busy ? "Planning..." : <>Add to week <Check size={15} /></>}</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
