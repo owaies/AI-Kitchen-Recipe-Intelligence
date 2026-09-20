@@ -7,6 +7,7 @@ import AuthScreen from "./AuthScreen";
 import ShoppingList from "./ShoppingList";
 import MealPlanner from "./MealPlanner";
 import PageTransitionScene from "./PageTransitionScene";
+import PantryCupboard from "./PantryCupboard";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
@@ -408,26 +409,14 @@ function App() {
 
         <div className="content">
           {active === "Pantry" ? (
-            <section className="pantry-page">
-              <div className="section-head pantry-page-head">
-                <div><span className="eyebrow">Inventory</span><h2>Your pantry</h2><p>Keep quantities and expiry dates useful, not mysterious.</p></div>
-                <button className="primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Add ingredient</button>
-              </div>
-              {pantryError && <div className="pantry-error">{pantryError}</div>}
-              <div className="pantry-table">
-                <div className="pantry-table-head"><span>Ingredient</span><span>Quantity</span><span>Category</span><span>Expiry</span><span>Actions</span></div>
-                {filtered.length === 0 ? (
-                  <div className="pantry-empty"><Leaf size={25} /><strong>Your pantry is empty.</strong><span>Add an ingredient to start building your kitchen memory.</span></div>
-                ) : filtered.map((item) => (
-                  <article className="pantry-row" key={item.id}>
-                    <div className="pantry-name"><div className="ingredient-icon">{item.name.slice(0, 1)}</div><div><strong>{item.name}</strong><small>{item.category}</small></div></div>
-                    <span>{item.amount}</span><span>{item.category}</span>
-                    <span className={item.days <= 2 ? "expiry urgent-text" : "expiry"}>{item.expiry}</span>
-                    <div className="row-actions"><button onClick={() => openEdit(item)}>Edit</button><button className="danger-link" onClick={() => removePantryItem(item)} disabled={pantryBusy}>Delete</button></div>
-                  </article>
-                ))}
-              </div>
-            </section>
+            <PantryCupboard
+              items={pantry}
+              query={query}
+              onQueryChange={setQuery}
+              onAdd={() => setShowAdd(true)}
+              onEdit={openEdit}
+              onDelete={removePantryItem}
+            />
           ) : active === "Shopping list" ? (
             <ShoppingList onRecipes={() => setActive("Recipes")} />
           ) : active === "Meal plan" ? (
