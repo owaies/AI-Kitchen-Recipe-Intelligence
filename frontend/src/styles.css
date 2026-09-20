@@ -43,3 +43,31 @@
 .ai-controls{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-top:18px;position:relative;z-index:1}.ai-controls label{display:grid;gap:5px;font:8px "DM Mono";letter-spacing:.1em;color:#e8eddc}.ai-controls input,.ai-controls select{min-width:170px;border:1px solid #ffffff44;background:#ffffff14;color:#fff;border-radius:7px;padding:8px 10px;font:10px "DM Mono";outline:0}.ai-controls select{min-width:92px}.dietary-controls{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.dietary-controls>span{font:8px "DM Mono";letter-spacing:.1em;color:#e8eddc;margin-right:2px}.dietary-controls button{border:1px solid #ffffff55;background:#ffffff10;color:#fff;border-radius:20px;padding:7px 9px;font-size:9px}.dietary-controls button.selected{background:var(--butter);border-color:var(--butter);color:var(--espresso)}.substitutions{display:grid;gap:7px;border-top:1px solid #e8dece;margin-top:17px;padding-top:17px;font-size:11px;color:var(--muted)}.substitutions strong{font:9px "DM Mono";letter-spacing:.1em;text-transform:uppercase;color:var(--olive)}.save-generated{margin-top:18px}@media(max-width:760px){.ai-controls{display:grid;grid-template-columns:1fr 100px}.ai-controls input{min-width:0}.dietary-controls{grid-column:1/-1}}
 
 .quick-ingredients button{display:inline-flex;align-items:center;gap:6px}.quick-ingredients button small{font:8px "DM Mono";opacity:.65}.quick-ingredients button.selected small{opacity:.9}.photo-review .primary svg{flex:none}
+
+/* Custom recipe controls */
+.ai-controls{align-items:flex-end}
+.goal-field{min-width:200px}
+.custom-select-field{position:relative;display:grid;gap:5px;min-width:118px}
+.custom-select-label,.dietary-controls>span{font:8px "DM Mono";letter-spacing:.1em;color:#e8eddc}
+.custom-select-trigger{width:100%;min-height:38px;border:1px solid #ffffff44;background:rgba(255,255,255,.08);color:#fff;border-radius:9px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;font:10px "DM Mono";text-align:left;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+.custom-select-trigger:hover,.custom-select-trigger.open{background:rgba(255,255,255,.16);border-color:#ffffff88;box-shadow:0 8px 22px rgba(34,43,20,.14)}
+.custom-select-trigger.open{transform:translateY(-1px)}
+.custom-select-chevron{transition:transform .2s;flex:none}
+.custom-select-trigger.open .custom-select-chevron{transform:rotate(90deg)}
+.custom-select-menu{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 7px);padding:6px;background:#fffdf8;border:1px solid #d9cdb9;border-radius:11px;box-shadow:0 18px 40px rgba(46,36,29,.2);animation:select-pop .16s ease-out}
+.custom-select-option{width:100%;border:0;background:transparent;color:var(--espresso);padding:9px 10px;border-radius:7px;display:flex;align-items:center;justify-content:space-between;gap:8px;font:10px "DM Mono";text-align:left}
+.custom-select-option:hover{background:#eee6d6;color:var(--tomato)}
+.custom-select-option.selected{background:#667a3e;color:#fff}
+.custom-select-option.selected:hover{background:#596b35;color:#fff}
+.dietary-controls{gap:6px}
+.dietary-controls button{display:inline-flex;align-items:center;gap:6px;border:1px solid #ffffff55;background:rgba(255,255,255,.07);color:#f4f5ed;border-radius:999px;padding:8px 10px;font:9px "DM Mono";transition:all .18s}
+.dietary-controls button:hover{background:rgba(255,255,255,.16);border-color:#ffffff99;transform:translateY(-1px)}
+.dietary-controls button.selected{background:var(--butter);border-color:var(--butter);color:var(--espresso);box-shadow:0 7px 18px rgba(232,199,102,.2)}
+.diet-check{font-size:10px;opacity:.75}
+.dietary-controls button.selected .diet-check{opacity:1;font-weight:700}
+.goal-field input{transition:border-color .18s,background .18s,box-shadow .18s}
+.goal-field input:hover{border-color:#ffffff66;background:rgba(255,255,255,.12)}
+.goal-field input:focus{border-color:#e8c766;box-shadow:0 0 0 3px rgba(232,199,102,.16)}
+@keyframes select-pop{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:900px){.ai-controls{align-items:stretch}.goal-field{min-width:180px}.custom-select-field{min-width:130px}}
+@media(max-width:760px){.ai-controls{display:grid;grid-template-columns:1fr 1fr}.goal-field{grid-column:1/-1}.custom-select-field{min-width:0}.dietary-controls{grid-column:1/-1}}
