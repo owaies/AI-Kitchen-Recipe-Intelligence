@@ -168,3 +168,40 @@
     max-height:220px;
   }
 }
+
+/* Dropdowns expand the hero instead of floating over the recipe grid */
+.recipe-intelligence-hero{
+  overflow:visible;
+  align-items:flex-end;
+}
+.recipe-intelligence-hero .ai-controls{
+  align-items:flex-start;
+}
+.recipe-intelligence-hero .custom-select-field{
+  align-self:flex-start;
+}
+.recipe-intelligence-hero .custom-select-menu{
+  position:static;
+  width:max(100%, 180px);
+  max-height:240px;
+  margin-top:8px;
+  overflow-y:auto;
+  animation:select-pop .16s ease-out;
+}
+.recipe-intelligence-hero .custom-select-trigger.open{
+  transform:none;
+}
+.recipe-intelligence-hero .recipe-actions{
+  align-self:flex-end;
+}
+@media(max-width:1050px){
+  .recipe-intelligence-hero .ai-controls{
+    align-items:start;
+  }
+}
+@media(max-width:760px){
+  .recipe-intelligence-hero .custom-select-menu{
+    width:100%;
+    max-height:220px;
+  }
+}
