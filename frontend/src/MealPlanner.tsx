@@ -58,7 +58,7 @@ export default function MealPlanner() {
     try {
       if (supabase) {
         const row = await createMealPlan({ plan_date: date, meal_type: mealType, recipe_id: recipeId || null, notes: notes.trim() || null });
-        if (row) setPlans((items) => [...items, row]);
+        if (row) setPlans((items) => [...items.filter((item) => !(item.plan_date === row.plan_date && item.meal_type === row.meal_type)), row]);
       } else {
         setPlans((items) => [...items, { id: "local-" + Date.now(), plan_date: date, meal_type: mealType, recipe_id: null, notes: notes.trim() || null }]);
       }
