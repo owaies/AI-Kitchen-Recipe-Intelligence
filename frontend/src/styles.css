@@ -270,3 +270,30 @@
 /* Meal plan actions */
 .meal-plan-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.meal-plan-actions .ghost,.meal-plan-actions .primary{white-space:nowrap}.meal-plan-actions .ghost:disabled{opacity:.6;cursor:wait}
 @media(max-width:600px){.meal-plan-actions{width:100%}.meal-plan-actions .ghost,.meal-plan-actions .primary{flex:1;justify-content:center}}
+
+/* Recipe photography layer */
+body{
+  background:
+    linear-gradient(90deg,rgba(247,241,227,.97) 0%,rgba(247,241,227,.93) 52%,rgba(247,241,227,.82) 100%),
+    url("https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=2200&q=72") center/cover fixed;
+}
+.app-shell{background:rgba(247,241,227,.12)}
+.smart-recipe-card{background:var(--paper);border:1px solid #e3d9c8;border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}
+.smart-recipe-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px #4e3d2b18}
+.smart-recipe-photo{height:185px;position:relative;overflow:hidden;background:#e8dfcf}
+.smart-recipe-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+.smart-recipe-card:hover .smart-recipe-photo img{transform:scale(1.045)}
+.smart-recipe-photo:after{content:"";position:absolute;inset:auto 0 0;height:72px;background:linear-gradient(transparent,#2e241d72);pointer-events:none}
+.smart-recipe-photo span,.smart-recipe-photo strong{position:absolute;z-index:1;bottom:12px;color:#fff;font:10px "DM Mono";text-transform:uppercase;letter-spacing:.08em}
+.smart-recipe-photo span{left:14px}
+.smart-recipe-photo strong{right:14px;background:var(--tomato);padding:6px 8px;border-radius:999px}
+.smart-recipe-content{padding:16px 17px 18px}
+.smart-recipe-content h3{font:500 23px "Playfair Display";margin:0 0 7px}
+.smart-recipe-content>p{margin:0 0 12px;color:var(--muted);font-size:11px;line-height:1.55}
+.recipe-detail-modal{padding:20px 28px 28px;max-height:min(88vh,760px);overflow:auto}
+.recipe-detail-image{height:210px;margin:-20px -28px 22px;overflow:hidden;background:#e8dfcf}
+.recipe-detail-image img{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:760px){
+  .smart-recipe-photo{height:210px}
+  .recipe-detail-image{height:190px}
+}
