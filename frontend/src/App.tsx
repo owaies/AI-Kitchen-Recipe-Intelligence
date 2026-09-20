@@ -10,6 +10,7 @@ import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem }
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
 import { generateAIRecipe } from "./services/aiRecipe";
 import { saveGeneratedRecipe } from "./services/savedRecipes";
+import { detectIngredientsFromPhoto, type DetectedIngredient } from "./services/vision";
 import type { Session } from "@supabase/supabase-js";
 
 type PantryItem = {
@@ -63,7 +64,9 @@ function App() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState("");
   const [photoIngredients, setPhotoIngredients] = useState<string[]>([]);
+  const [detectedIngredients, setDetectedIngredients] = useState<DetectedIngredient[]>([]);
   const [photoMessage, setPhotoMessage] = useState("");
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -193,12 +196,28 @@ function App() {
     setPhotoIngredients((items) => [...items, name]);
   };
 
+  const detectPhotoIngredients = async () => {
+    if (!photoPreview) return;
+    setPhotoBusy(true);
+    setPhotoMessage("Gemini is examining the image...");
+    try {
+      const detected = await detectIngredientsFromPhoto(photoPreview);
+      setDetectedIngredients(detected);
+      setPhotoIngredients(detected.map((item) => item.name));
+      setPhotoMessage(detected.length ? `Detected ${detected.length} ingredient${detected.length === 1 ? "" : "s"}. Review the selections before saving.` : "No confident ingredients were detected. Try a clearer food photo.");
+    } catch (error) {
+      setPhotoMessage(error instanceof Error ? error.message : "Ingredient recognition failed.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
   const addConfirmedPhotoIngredients = async () => {
     for (const name of photoIngredients) {
       if (session) await createPantryItem({ name, quantity: 1, unit: "item", category: "Photo import" });
     }
     setPantry((items) => [...items, ...photoIngredients.map((name, index) => ({ id: "photo-" + Date.now() + "-" + index, name, amount: "1 item", category: "Photo import", expiry: "No expiry", days: 999 }))]);
-    setPhotoPreview(null); setPhotoIngredients([]); setPhotoName(""); setShowAdd(false); setPhotoMessage("");
+    setPhotoPreview(null); setPhotoIngredients([]); setDetectedIngredients([]); setPhotoName(""); setShowAdd(false); setPhotoMessage("");
   };
 
   const generateRecipes = async () => {
@@ -447,7 +466,7 @@ function App() {
             <p>Start with the ingredient name. Quantity, expiry and category can be refined in your pantry.</p>
             <input autoFocus value={newIngredient} onChange={(e) => setNewIngredient(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addIngredient()} placeholder="e.g. chickpeas" />
             <label className="photo-option photo-upload"><Camera size={18} /><div><strong>Ingredient photo</strong><span>Upload a photo, then confirm ingredients before saving.</span></div><input type="file" accept="image/*" onChange={handleIngredientPhoto} /></label>
-            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">Review · {photoName}</span><strong>What ingredients are visible?</strong><div className="quick-ingredients">{["tomato","onion","egg","avocado","basil","lemon","potato","garlic"].map((item) => <button key={item} type="button" className={photoIngredients.includes(item) ? "selected" : ""} onClick={() => photoIngredients.includes(item) ? setPhotoIngredients((items) => items.filter((x) => x !== item)) : addPhotoIngredient(item)}>{item}</button>)}</div><small>{photoMessage}</small><button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length}>Add confirmed ingredients</button></div></div>}
+            {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">AI vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}<small>{Math.round(item.confidence * 100)}%</small></button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo..." : "Detect ingredients with Gemini"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
             <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
           </div>
         </div>
