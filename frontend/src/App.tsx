@@ -56,6 +56,7 @@ function App() {
   const [aiMessage, setAiMessage] = useState("");
   const [aiGoal, setAiGoal] = useState("a practical dinner using the pantry");
   const [aiMaxTime, setAiMaxTime] = useState(45);
+  const [aiCuisine, setAiCuisine] = useState("Any cuisine");
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const [saveBusy, setSaveBusy] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
@@ -212,7 +213,7 @@ function App() {
     setAiMessage("");
     try {
       const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-      const recipe = await generateAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences);
+      const recipe = await generateAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine);
       setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
       setActive("Recipes");
     } catch (error) {
@@ -305,7 +306,7 @@ function App() {
                   <p>Ask Gemini to reason over your pantry, dietary preferences and time limit. Missing ingredients and practical substitutions stay visible.</p>
                   <div className="ai-controls">
                     <label>GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
-                    <label>TIME<select value={aiMaxTime} onChange={(e) => setAiMaxTime(Number(e.target.value))} aria-label="Maximum cooking time"><option value={20}>20 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option></select></label>
+                    <label>TIME<select value={aiMaxTime} onChange={(e) => setAiMaxTime(Number(e.target.value))} aria-label="Maximum cooking time"><option value={20}>20 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option></select></label><label>CUISINE<select value={aiCuisine} onChange={(e) => setAiCuisine(e.target.value)} aria-label="Preferred cuisine"><option>Any cuisine</option><option>Indian</option><option>Italian</option><option>Mexican</option><option>Chinese</option><option>Japanese</option><option>Thai</option><option>Korean</option><option>Mediterranean</option><option>Middle Eastern</option><option>American</option></select></label>
                     <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}</button>)}</div>
                   </div>
                 </div>
