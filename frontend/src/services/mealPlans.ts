@@ -35,7 +35,8 @@ export async function createMealPlan(input: {
   const id = await userId();
   if (!id) throw new Error("Please sign in before planning meals.");
   const { data, error } = await supabase.from("meal_plans")
-    .insert({ ...input, user_id: id }).select("id,plan_date,meal_type,recipe_id,notes").single();
+    .upsert({ ...input, user_id: id }, { onConflict: "user_id,plan_date,meal_type" })
+    .select("id,plan_date,meal_type,recipe_id,notes").single();
   if (error) throw error;
   return data as MealPlanRow;
 }
