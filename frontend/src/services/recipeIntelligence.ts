@@ -72,10 +72,8 @@ const templates: Template[] = [
     steps: ["Cook pasta and reserve a little pasta water.", "Sauté garlic gently, then add milk.", "Toss with pasta and loosen with pasta water."],
     nutrition: { calories: 520, protein: 17, carbs: 76, fat: 16 },
   },
-];
-
-{
-  title: "Masala Egg Bhurji",
+  {
+    title: "Masala Egg Bhurji",
   cuisine: "Indian",
   time: 20,
   difficulty: "Easy",
@@ -140,6 +138,8 @@ const templates: Template[] = [
   steps: ["Drain and rinse chickpeas.", "Chop tomato and available vegetables.", "Toss everything with lemon, seasoning, and olive oil."],
   nutrition: { calories: 330, protein: 14, carbs: 45, fat: 11 },
 },
+];
+
 const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
 
 export function generateRecipeIntelligence(pantry: PantryRow[]): SmartRecipe[] {
