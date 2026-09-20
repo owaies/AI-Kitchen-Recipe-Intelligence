@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Check, Plus, Trash2, X } from "lucide-react";
+import { CalendarDays, Check, Plus, ShoppingBasket, Trash2, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { createMealPlan, deleteMealPlan, listMealPlans, listSavedRecipeOptions, type MealPlanRow, type SavedRecipeOption } from "./services/mealPlans";
+import { addUniqueShoppingItems } from "./services/shopping";
 
 const meals: { value: MealPlanRow["meal_type"]; label: string }[] = [
   { value: "breakfast", label: "Breakfast" },
@@ -24,6 +25,11 @@ function prettyDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short" }).format(new Date(value + "T12:00:00"));
 }
 
+function missingIngredients(recipe: SavedRecipeOption) {
+  const value = recipe.recipe_data?.missing;
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
 export default function MealPlanner() {
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const [plans, setPlans] = useState<MealPlanRow[]>([]);
@@ -34,6 +40,7 @@ export default function MealPlanner() {
   const [recipeId, setRecipeId] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const [groceryBusy, setGroceryBusy] = useState(false);
   const [message, setMessage] = useState("");
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => {
@@ -76,6 +83,36 @@ export default function MealPlanner() {
     }
   };
 
+  const buildGroceryList = async () => {
+    if (groceryBusy) return;
+    if (!supabase) {
+      setMessage("Sign in with Supabase to build a persistent grocery list from your meal plan.");
+      return;
+    }
+    setGroceryBusy(true);
+    setMessage("");
+    try {
+      const recipeById = new Map(savedRecipes.map((recipe) => [recipe.id, recipe]));
+      const weekPlans = plans.filter((plan) => days.includes(plan.plan_date) && plan.recipe_id);
+      const missing = weekPlans.flatMap((plan) => {
+        const recipe = plan.recipe_id ? recipeById.get(plan.recipe_id) : null;
+        return recipe ? missingIngredients(recipe) : [];
+      });
+      if (missing.length === 0) {
+        setMessage("No missing ingredients found on this week's saved recipes.");
+        return;
+      }
+      const result = await addUniqueShoppingItems(missing, "meal-plan");
+      setMessage(result.added
+        ? `Added ${result.added} grocery item${result.added === 1 ? "" : "s"} to your shopping list${result.skipped ? ` · ${result.skipped} already listed` : ""}.`
+        : "Those ingredients are already on your shopping list.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not build the grocery list.");
+    } finally {
+      setGroceryBusy(false);
+    }
+  };
+
   return (
     <section className="meal-plan-page">
       <div className="section-head meal-plan-head">
@@ -84,7 +121,10 @@ export default function MealPlanner() {
           <h2>A plan worth cooking.</h2>
           <p>Place saved recipes across the week, keep a note for each meal, and turn planning into a grocery-ready routine.</p>
         </div>
-        <button className="primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Plan a meal</button>
+        <div className="meal-plan-actions">
+          <button className="ghost" onClick={buildGroceryList} disabled={groceryBusy}><ShoppingBasket size={15} /> {groceryBusy ? "Building list..." : "Build grocery list"}</button>
+          <button className="primary" onClick={() => setShowAdd(true)}><Plus size={15} /> Plan a meal</button>
+        </div>
       </div>
 
       {message && <div className="pantry-error">{message}</div>}
