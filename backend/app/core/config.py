@@ -9,9 +9,8 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     openrouter_api_key: str = ""
     openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
+    openrouter_vision_model: str = "qwen/qwen2.5-vl-32b-instruct:free"
     openrouter_site_url: str = ""
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
     cors_origins: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
