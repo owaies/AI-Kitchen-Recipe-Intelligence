@@ -6,6 +6,7 @@ Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
 import AuthScreen from "./AuthScreen";
 import ShoppingList from "./ShoppingList";
 import MealPlanner from "./MealPlanner";
+import PageTransitionScene from "./PageTransitionScene";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
@@ -89,7 +90,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(Boolean(supabase));
   const [active, setActive] = useState("Overview");
-  const [transitionScene, setTransitionScene] = useState<"kitchen" | "cupboards" | null>(null);
+  const [transitionScene, setTransitionScene] = useState<"kitchen" | "cupboards" | "recipes" | "meal-plan" | "shopping" | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>(demoPantry);
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
@@ -163,18 +164,26 @@ function App() {
   }, [session]);
 
   const navigateTo = (page: string) => {
-    if (page === active) return;
+    if (page === active || transitionScene) return;
 
-    if (page === "Overview" || page === "Pantry") {
-      setTransitionScene(page === "Pantry" ? "cupboards" : "kitchen");
-      window.setTimeout(() => {
-        setActive(page);
-        window.setTimeout(() => setTransitionScene(null), 350);
-      }, 500);
+    const scenes: Record<string, typeof transitionScene> = {
+      Overview: "kitchen",
+      Pantry: "cupboards",
+      Recipes: "recipes",
+      "Meal plan": "meal-plan",
+      "Shopping list": "shopping",
+    };
+    const scene = scenes[page];
+    if (!scene) {
+      setActive(page);
       return;
     }
 
-    setActive(page);
+    setTransitionScene(scene);
+    window.setTimeout(() => {
+      setActive(page);
+      window.setTimeout(() => setTransitionScene(null), 520);
+    }, 760);
   };
 
   const filtered = useMemo(
@@ -343,20 +352,23 @@ function App() {
     <>
       {transitionScene && (
         <div className={`kitchen-transition ${transitionScene}`} aria-hidden="true">
-          <div className="transition-scene">
-            {transitionScene === "kitchen" ? (
-              <div className="kitchen-transition-image">
-                <div className="transition-copy"><span>Kitchen</span><strong>Welcome home.</strong></div>
-              </div>
-            ) : (
-              <div className="cupboard-transition-image">
-                <div className="cupboard-doors">
-                  <span className="cupboard-door-left" />
-                  <span className="cupboard-door-right" />
-                </div>
-                <div className="transition-copy"><span>Pantry</span><strong>Opening the cupboards.</strong></div>
-              </div>
-            )}
+          <PageTransitionScene scene={transitionScene} />
+          <div className="transition-vignette" />
+          <div className="transition-copy">
+            <span>
+              {transitionScene === "kitchen" && "Kitchen"}
+              {transitionScene === "cupboards" && "Pantry"}
+              {transitionScene === "recipes" && "Recipe studio"}
+              {transitionScene === "meal-plan" && "Weekly table"}
+              {transitionScene === "shopping" && "Market list"}
+            </span>
+            <strong>
+              {transitionScene === "kitchen" && "Welcome home."}
+              {transitionScene === "cupboards" && "Opening the cupboards."}
+              {transitionScene === "recipes" && "Choose what comes next."}
+              {transitionScene === "meal-plan" && "Set the table for the week."}
+              {transitionScene === "shopping" && "Bring the kitchen home."}
+            </strong>
           </div>
         </div>
       )}
