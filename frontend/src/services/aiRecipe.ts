@@ -33,7 +33,8 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
     body: JSON.stringify({
       pantry: pantry.map(({ name, quantity, unit }) => ({ name, quantity, unit })),
       goal,
-      max_time_minutes: 45,
+      max_time_minutes: maxTimeMinutes,
+      dietary_preferences: dietaryPreferences,
     }),
   });
 
@@ -56,6 +57,7 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
     used,
     missing,
     reason: recipe.reason,
+    substitutions: recipe.substitutions ?? [],
     steps: recipe.steps,
     nutrition: {
       calories: Math.round(recipe.nutrition.calories),
