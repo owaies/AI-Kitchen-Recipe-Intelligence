@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
 Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
@@ -12,6 +12,54 @@ import { generateAIRecipe } from "./services/aiRecipe";
 import { saveGeneratedRecipe } from "./services/savedRecipes";
 import { detectIngredientsFromPhoto, type DetectedIngredient } from "./services/vision";
 import type { Session } from "@supabase/supabase-js";
+
+type SelectOption = { value: string | number; label: string };
+
+function CustomSelect({ label, value, options, onChange }: { label: string; value: string | number; options: SelectOption[]; onChange: (value: string | number) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  return (
+    <div className="custom-select-field" ref={ref}>
+      <span className="custom-select-label">{label}</span>
+      <button
+        type="button"
+        className={open ? "custom-select-trigger open" : "custom-select-trigger"}
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{selected?.label}</span><ChevronRight size={13} className="custom-select-chevron" />
+      </button>
+      {open && (
+        <div className="custom-select-menu" role="listbox">
+          {options.map((option) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={option.value === value ? "custom-select-option selected" : "custom-select-option"}
+              key={String(option.value)}
+              onClick={() => { onChange(option.value); setOpen(false); }}
+            >
+              <span>{option.label}</span>
+              {option.value === value && <Check size={13} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 type PantryItem = {
   id: string;
@@ -324,9 +372,10 @@ function App() {
                   <h2>What can you cook<br /><em>right now?</em></h2>
                   <p>Ask Gemini to reason over your pantry, dietary preferences and time limit. Missing ingredients and practical substitutions stay visible.</p>
                   <div className="ai-controls">
-                    <label>GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
-                    <label>TIME<select value={aiMaxTime} onChange={(e) => setAiMaxTime(Number(e.target.value))} aria-label="Maximum cooking time"><option value={20}>20 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option></select></label><label>CUISINE<select value={aiCuisine} onChange={(e) => setAiCuisine(e.target.value)} aria-label="Preferred cuisine"><option>Any cuisine</option><option>Indian</option><option>Italian</option><option>Mexican</option><option>Chinese</option><option>Japanese</option><option>Thai</option><option>Korean</option><option>Mediterranean</option><option>Middle Eastern</option><option>American</option></select></label>
-                    <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}</button>)}</div>
+                    <label className="goal-field">GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
+                    <CustomSelect label="TIME" value={aiMaxTime} onChange={(value) => setAiMaxTime(Number(value))} options={[{ value: 20, label: "20 min" }, { value: 30, label: "30 min" }, { value: 45, label: "45 min" }, { value: 60, label: "60 min" }]} />
+                    <CustomSelect label="CUISINE" value={aiCuisine} onChange={(value) => setAiCuisine(String(value))} options={["Any cuisine", "Indian", "Italian", "Mexican", "Chinese", "Japanese", "Thai", "Korean", "Mediterranean", "Middle Eastern", "American"].map((item) => ({ value: item, label: item }))} />
+                    <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div>
                   </div>
                 </div>
                 <div className="recipe-actions"><button className="primary" onClick={generateGeminiRecipe} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Gemini..." : "Ask Gemini"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
