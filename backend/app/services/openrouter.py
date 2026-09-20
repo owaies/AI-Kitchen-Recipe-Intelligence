@@ -12,6 +12,43 @@ class OpenRouterError(RuntimeError):
     pass
 
 
+def _parse_json_content(content: object) -> dict:
+    if isinstance(content, list):
+        content = "".join(
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict)
+        )
+
+    if not isinstance(content, str):
+        raise OpenRouterError("Nemotron returned an unsupported recipe response.")
+
+    text = content.strip()
+    if text.lower().startswith("'''json"):
+        text = text[7:]
+    elif text.startswith("'''"):
+        text = text[3:]
+    if text.endswith("'''"):
+        text = text[:-3]
+    text = text.strip()
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            raise OpenRouterError("Nemotron returned a response that was not valid JSON.")
+        try:
+            parsed = json.loads(text[start:end + 1])
+        except json.JSONDecodeError as exc:
+            raise OpenRouterError("Nemotron returned an invalid structured recipe response.") from exc
+
+    if not isinstance(parsed, dict):
+        raise OpenRouterError("Nemotron returned an invalid recipe object.")
+    return parsed
+
+
 async def generate_recipe(prompt: str) -> dict:
     if not settings.openrouter_api_key:
         raise OpenRouterError("OpenRouter API key is not configured.")
@@ -23,13 +60,12 @@ async def generate_recipe(prompt: str) -> dict:
                 "role": "system",
                 "content": (
                     "You are the AI recipe intelligence engine for a private kitchen app. "
-                    "Return valid JSON only. Do not wrap JSON in markdown fences."
+                    "Return exactly one JSON object and no markdown."
                 ),
             },
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.7,
-        "response_format": {"type": "json_object"},
     }
 
     headers = {
@@ -48,13 +84,10 @@ async def generate_recipe(prompt: str) -> dict:
                 try:
                     body = response.json()
                     content = body["choices"][0]["message"]["content"]
-                    if isinstance(content, list):
-                        content = "".join(
-                            part.get("text", "") for part in content
-                            if isinstance(part, dict)
-                        )
-                    return json.loads(content)
-                except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+                    return _parse_json_content(content)
+                except OpenRouterError:
+                    raise
+                except (KeyError, IndexError, TypeError) as exc:
                     raise OpenRouterError(
                         "Nemotron returned an invalid structured recipe response."
                     ) from exc
