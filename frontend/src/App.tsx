@@ -7,6 +7,7 @@ import AuthScreen from "./AuthScreen";
 import ShoppingList from "./ShoppingList";
 import MealPlanner from "./MealPlanner";
 import PageTransitionScene from "./PageTransitionScene";
+import CookMode from "./CookMode";
 import PantryCupboard from "./PantryCupboard";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
@@ -114,6 +115,7 @@ function App() {
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
   const [saveBusy, setSaveBusy] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
+  const [cookRecipe, setCookRecipe] = useState<SmartRecipe | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState("");
   const [photoIngredients, setPhotoIngredients] = useState<string[]>([]);
@@ -351,28 +353,7 @@ function App() {
 
   return (
     <>
-      {transitionScene && (
-        <div className={`kitchen-transition ${transitionScene}`} aria-hidden="true">
-          <PageTransitionScene scene={transitionScene} />
-          <div className="transition-vignette" />
-          <div className="transition-copy">
-            <span>
-              {transitionScene === "kitchen" && "Kitchen"}
-              {transitionScene === "cupboards" && "Pantry"}
-              {transitionScene === "recipes" && "Recipe studio"}
-              {transitionScene === "meal-plan" && "Weekly table"}
-              {transitionScene === "shopping" && "Market list"}
-            </span>
-            <strong>
-              {transitionScene === "kitchen" && "Welcome home."}
-              {transitionScene === "cupboards" && "Opening the cupboards."}
-              {transitionScene === "recipes" && "Choose what comes next."}
-              {transitionScene === "meal-plan" && "Set the table for the week."}
-              {transitionScene === "shopping" && "Bring the kitchen home."}
-            </strong>
-          </div>
-        </div>
-      )}
+      {transitionScene && <PageTransitionScene scene={transitionScene} />}
       <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
@@ -475,6 +456,19 @@ function App() {
             </div>
           </section>
 
+          <section className="kitchen-intelligence">
+            <div className="intelligence-heading">
+              <span className="eyebrow"><Sparkles size={13} /> Kitchen intelligence</span>
+              <h2>Your kitchen is telling you what to cook.</h2>
+            </div>
+            <div className="intelligence-metrics">
+              <div><strong>{pantry.length}</strong><span>ingredients available</span></div>
+              <div className="urgent"><strong>{pantry.filter((i) => i.days <= 2).length}</strong><span>need using soon</span></div>
+              <div><strong>{Math.max(1, Math.min(14, pantry.length * 2))}</strong><span>possible meals</span></div>
+              <button onClick={() => navigateTo("Recipes")}>Ask your kitchen <ArrowRight size={14} /></button>
+            </div>
+          </section>
+
           <section className="stats">
             <div><span>Pantry</span><strong>{pantry.length}</strong><small>ingredients</small></div>
             <div><span>Expiring soon</span><strong>{pantry.filter((i) => i.days <= 2).length}</strong><small>within 48 hours</small></div>
@@ -541,10 +535,13 @@ function App() {
             <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
             {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
             <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
+            <button className="primary full" onClick={() => { setSelectedRecipe(null); setCookRecipe(selectedRecipe); }}><Utensils size={15} /> Start cooking</button>
             <button className="primary full save-generated" disabled={saveBusy} onClick={async () => { setSaveBusy(true); try { await saveGeneratedRecipe(selectedRecipe); setSaved((items) => items.includes(selectedRecipe.title) ? items : [...items, selectedRecipe.title]); setAiMessage("Recipe saved to your private collection."); } catch (error) { setAiMessage(error instanceof Error ? error.message : "Could not save recipe."); } finally { setSaveBusy(false); } }}>{saveBusy ? "Saving..." : saved.includes(selectedRecipe.title) ? "Saved to collection ✓" : "Save recipe to collection"}</button>
           </div>
         </div>
       )}
+
+      {cookRecipe && <CookMode recipe={cookRecipe} onClose={() => setCookRecipe(null)} />}
 
       {editing && (
         <div className="modal-backdrop" onMouseDown={() => !pantryBusy && setEditing(null)}>
