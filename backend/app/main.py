@@ -14,6 +14,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
     allow_credentials=True,
+    allow_origin_regex=r"https://ai-kitchen-recipe-intelligence(?:-[a-z0-9-]+)?-owaies\\.projects\\.vercel\\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )
