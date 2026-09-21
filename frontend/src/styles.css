@@ -823,3 +823,128 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
   .cupboard-stage{min-height:960px}
   .cupboard-items{padding:42px 12px 45px}
 }
+
+/* Photographic page transitions */
+.image-transition{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  overflow:hidden;
+  background:#17110d;
+  isolation:isolate;
+  pointer-events:auto;
+  animation:photo-transition-in .82s cubic-bezier(.22,.8,.22,1) both;
+}
+.transition-image-wrap{
+  position:absolute;
+  inset:-7%;
+  overflow:hidden;
+  transform:scale(1.08);
+}
+.transition-food-image{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  object-position:center;
+  filter:saturate(.82) contrast(1.04) brightness(.72);
+  transform:scale(1.04);
+  animation:photo-image-zoom 1.45s cubic-bezier(.16,1,.3,1) both;
+  will-change:transform,filter;
+}
+.image-transition.is-loaded .transition-food-image{
+  animation:photo-image-zoom 1.45s cubic-bezier(.16,1,.3,1) both;
+}
+.transition-image-wash{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,rgba(20,13,9,.78) 0%,rgba(20,13,9,.38) 42%,rgba(20,13,9,.18) 100%),
+    linear-gradient(180deg,rgba(15,10,7,.34) 0%,transparent 42%,rgba(15,10,7,.5) 100%);
+  z-index:1;
+}
+.transition-image-grain{
+  position:absolute;
+  inset:-50%;
+  z-index:2;
+  pointer-events:none;
+  opacity:.12;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode:soft-light;
+  animation:grain-drift .8s steps(2,end) infinite;
+}
+.image-transition .transition-copy{
+  left:clamp(28px,8vw,130px);
+  bottom:clamp(60px,12vh,130px);
+  max-width:min(720px,78vw);
+  z-index:4;
+  opacity:0;
+  animation:photo-copy-in .75s .18s cubic-bezier(.22,.8,.22,1) both;
+}
+.image-transition .transition-copy span{
+  color:#e8c766;
+  font-size:10px;
+  letter-spacing:.25em;
+  margin-bottom:13px;
+}
+.image-transition .transition-copy strong{
+  color:#fffaf0;
+  font-size:clamp(42px,6.4vw,92px);
+  line-height:.91;
+  max-width:720px;
+  text-wrap:balance;
+}
+.image-transition.cupboards .transition-copy span{color:#d5dcaa}
+.image-transition.recipes .transition-copy span{color:#efad91}
+.image-transition.meal-plan .transition-copy span{color:#e7d09b}
+.image-transition.shopping .transition-copy span{color:#d0dcaa}
+.transition-progress{
+  position:absolute;
+  left:clamp(28px,8vw,130px);
+  bottom:clamp(32px,6vh,65px);
+  width:min(300px,35vw);
+  height:1px;
+  background:rgba(255,255,255,.22);
+  z-index:4;
+  overflow:hidden;
+}
+.transition-progress i{
+  display:block;
+  width:100%;
+  height:100%;
+  transform-origin:left center;
+  background:#fff4d5;
+  animation:transition-progress 1.25s cubic-bezier(.22,.8,.22,1) both;
+}
+@keyframes photo-transition-in{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes photo-image-zoom{
+  from{transform:scale(1.13);filter:saturate(.62) contrast(1.02) brightness(.5) blur(5px)}
+  to{transform:scale(1);filter:saturate(.92) contrast(1.04) brightness(.72) blur(0)}
+}
+@keyframes photo-copy-in{
+  from{opacity:0;transform:translate3d(0,30px,0);filter:blur(10px)}
+  to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}
+}
+@keyframes transition-progress{
+  from{transform:scaleX(0)}
+  to{transform:scaleX(1)}
+}
+@keyframes grain-drift{
+  0%{transform:translate3d(0,0,0)}
+  25%{transform:translate3d(3%,-2%,0)}
+  50%{transform:translate3d(-2%,3%,0)}
+  75%{transform:translate3d(2%,2%,0)}
+  100%{transform:translate3d(-3%,-2%,0)}
+}
+@media(max-width:700px){
+  .transition-image-wrap{inset:-10%}
+  .image-transition .transition-copy{left:24px;bottom:88px;max-width:86vw}
+  .image-transition .transition-copy strong{font-size:clamp(38px,12vw,58px)}
+  .transition-progress{left:24px;width:calc(100vw - 48px);bottom:38px}
+}
+@media(prefers-reduced-motion:reduce){
+  .image-transition,.transition-food-image,.transition-copy,.transition-progress i,.transition-image-grain{animation:none!important}
+}
