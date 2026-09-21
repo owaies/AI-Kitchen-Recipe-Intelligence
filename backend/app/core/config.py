@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     openrouter_model: str = "nvidia/nemotron-3.5-lightning:free"
     openrouter_site_url: str = ""
     huggingface_space_url: str = "https://owaies-kitchen-ingredient-detector.hf.space"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,https://ai-kitchen-recipe-intelligence-owaies-projects.vercel.app"
 
     model_config = SettingsConfigDict(
         env_file=".env",
