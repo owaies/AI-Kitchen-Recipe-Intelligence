@@ -32,8 +32,24 @@ def _decode_image(image_data_url: str) -> Image.Image:
         raise VisionError("The uploaded image could not be decoded.") from exc
 
 
-def _normalize_answer(answer: str) -> list[dict]:
-    text = " ".join(str(answer).strip().lower().split())
+def _extract_text(value: object) -> str:
+    if isinstance(value, str):
+        return value
+
+    if isinstance(value, dict):
+        for key in ("answer", "text", "output", "label", "value"):
+            if key in value:
+                return _extract_text(value[key])
+        return " ".join(_extract_text(item) for item in value.values())
+
+    if isinstance(value, (list, tuple)):
+        return " ".join(_extract_text(item) for item in value)
+
+    return str(value)
+
+
+def _normalize_answer(answer: object) -> list[dict]:
+    text = " ".join(_extract_text(answer).strip().lower().split())
     if not text:
         return []
 
@@ -52,30 +68,55 @@ def _normalize_answer(answer: str) -> list[dict]:
         "chillies": "chilli",
     }
 
-    # BLIP is VQA rather than object detection, so treat its answer as a
-    # candidate ingredient and keep confidence explicitly unavailable.
-    candidates = []
+    candidates: list[dict] = []
+    seen: set[str] = set()
+
+    # BLIP is VQA rather than object detection, so confidence is intentionally
+    # left unavailable instead of inventing a probability.
     for part in text.replace(" and ", ",").split(","):
         name = part.strip(" .;:-")
         if not name:
             continue
+
         name = replacements.get(name, name)
-        if name not in {item["name"] for item in candidates}:
+        if name not in seen and len(name) <= 80:
+            seen.add(name)
             candidates.append({"name": name, "confidence": 0.0})
 
     return candidates[:12]
 
 
+def _predict(client: Client, image_path: str) -> object:
+    image = handle_file(image_path)
+
+    # The Space has one public BLIP prediction endpoint. Let Gradio resolve
+    # the endpoint index first, which avoids breaking if the Space renames
+    # /detect_ingredient to the default /predict endpoint.
+    try:
+        return client.predict(image)
+    except Exception as first_error:
+        last_error = first_error
+
+    for api_name in ("/detect_ingredient", "/predict"):
+        try:
+            return client.predict(image, api_name=api_name)
+        except Exception as exc:
+            last_error = exc
+
+    raise VisionError(
+        f"Hugging Face BLIP Space request failed: {str(last_error)[:300]}"
+    )
+
+
 def _run_blip(image_path: str) -> object:
     try:
         client = Client(settings.huggingface_space_url)
-        return client.predict(
-            handle_file(image_path),
-            api_name="/detect_ingredient",
-        )
+        return _predict(client, image_path)
+    except VisionError:
+        raise
     except Exception as exc:
         raise VisionError(
-            "Hugging Face BLIP could not analyze the image."
+            f"Hugging Face BLIP Space could not be reached: {str(exc)[:300]}"
         ) from exc
 
 
@@ -90,7 +131,14 @@ async def detect_ingredients(image_data_url: str) -> list[dict]:
         image.save(temp_path, format="JPEG", quality=90)
 
         answer = await asyncio.to_thread(_run_blip, temp_path)
-        return _normalize_answer(str(answer))
+        ingredients = _normalize_answer(answer)
+
+        if not ingredients:
+            raise VisionError(
+                "BLIP analyzed the image but did not return an ingredient name."
+            )
+
+        return ingredients
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
