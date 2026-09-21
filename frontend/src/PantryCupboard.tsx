@@ -56,101 +56,204 @@ function categoryFor(item: CupboardItem) {
   return "produce";
 }
 
-function ShelfScene() {
+function makeIngredientObject(name: string, index: number) {
+  const key = name.toLowerCase();
+  const group = new THREE.Group();
+  const wood = new THREE.MeshStandardMaterial({ color: 0x7b4f31, roughness: 0.78 });
+  const red = new THREE.MeshPhysicalMaterial({ color: 0xb83f2f, roughness: 0.38, clearcoat: 0.35 });
+  const green = new THREE.MeshStandardMaterial({ color: 0x5f7139, roughness: 0.65 });
+  const cream = new THREE.MeshStandardMaterial({ color: 0xf0e3c4, roughness: 0.72 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0xd9eee2, transmission: 0.35, transparent: true, opacity: 0.72, roughness: 0.16 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0xc6a45e, metalness: 0.82, roughness: 0.2 });
+
+  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, position: [number, number, number]) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(...position);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+    return mesh;
+  };
+
+  if (key.includes("tomato")) {
+    const fruit = add(new THREE.SphereGeometry(0.42, 32, 24), red, [0, 0.45, 0]);
+    fruit.scale.set(1.08, 0.88, 1.02);
+    const stem = add(new THREE.ConeGeometry(0.12, 0.18, 6), green, [0, 0.88, 0]);
+    stem.rotation.z = Math.PI;
+  } else if (key.includes("onion")) {
+    const bulb = add(new THREE.SphereGeometry(0.38, 32, 24), new THREE.MeshStandardMaterial({ color: 0xc9a4a0, roughness: 0.58 }), [0, 0.42, 0]);
+    bulb.scale.set(.88, 1.12, .88);
+    add(new THREE.CylinderGeometry(.035, .06, .28, 10), cream, [0, .83, 0]);
+  } else if (key.includes("potato")) {
+    const potato = add(new THREE.SphereGeometry(.42, 28, 20), new THREE.MeshStandardMaterial({ color: 0xa97848, roughness: .92 }), [0, .42, 0]);
+    potato.scale.set(1.2, .78, .82);
+    potato.rotation.z = index * .4;
+  } else if (key.includes("lemon")) {
+    const lemon = add(new THREE.SphereGeometry(.36, 32, 24), new THREE.MeshStandardMaterial({ color: 0xd7ad27, roughness: .46 }), [0, .42, 0]);
+    lemon.scale.set(1.2, .78, .78);
+  } else if (key.includes("egg")) {
+    const egg = add(new THREE.SphereGeometry(.32, 28, 24), cream, [0, .36, 0]);
+    egg.scale.set(.78, 1.12, .78);
+  } else if (key.includes("garlic")) {
+    const bulb = add(new THREE.SphereGeometry(.34, 28, 20), cream, [0, .36, 0]);
+    bulb.scale.set(1, .88, 1);
+    for (let i = 0; i < 5; i++) {
+      const clove = add(new THREE.SphereGeometry(.09, 16, 12), new THREE.MeshStandardMaterial({ color: 0xe6d5b5, roughness: .7 }), [Math.cos(i * 1.25) * .16, .43, Math.sin(i * 1.25) * .16]);
+      clove.scale.y = 1.4;
+    }
+  } else if (key.includes("rice") || key.includes("dal") || key.includes("flour") || key.includes("pasta")) {
+    const bag = add(new THREE.BoxGeometry(.58, .95, .34), cream, [0, .5, 0]);
+    bag.rotation.y = (index % 3 - 1) * .06;
+    add(new THREE.BoxGeometry(.38, .3, .015), new THREE.MeshStandardMaterial({ color: 0x6b7a3d, roughness: .7 }), [0, .52, .18]);
+    add(new THREE.BoxGeometry(.42, .055, .02), metal, [0, .94, .18]);
+  } else if (key.includes("milk") || key.includes("oil") || key.includes("bottle")) {
+    add(new THREE.CylinderGeometry(.22, .25, .9, 24), glass, [0, .5, 0]);
+    add(new THREE.CylinderGeometry(.12, .14, .18, 20), cream, [0, 1.04, 0]);
+    add(new THREE.CylinderGeometry(.07, .08, .08, 20), metal, [0, 1.17, 0]);
+  } else if (key.includes("butter") || key.includes("paneer")) {
+    add(new THREE.BoxGeometry(.62, .38, .42), cream, [0, .28, 0]);
+    add(new THREE.BoxGeometry(.5, .2, .015), new THREE.MeshStandardMaterial({ color: 0xd3a93f, roughness: .6 }), [0, .28, .22]);
+  } else {
+    const jar = add(new THREE.CylinderGeometry(.26, .26, .7, 24), glass, [0, .42, 0]);
+    jar.scale.z = .9;
+    add(new THREE.CylinderGeometry(.28, .28, .08, 24), metal, [0, .8, 0]);
+    add(new THREE.CylinderGeometry(.2, .2, .08, 20), wood, [0, .88, 0]);
+  }
+
+  group.rotation.y = (index % 5 - 2) * 0.08;
+  return group;
+}
+
+function ShelfScene({ items, onSelect }: { items: CupboardItem[]; onSelect: (item: CupboardItem) => void }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef(items);
+  const onSelectRef = useRef(onSelect);
+  itemsRef.current = items;
+  onSelectRef.current = onSelect;
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(30, mount.clientWidth / mount.clientHeight, 0.1, 100);
-    camera.position.set(0, 0.5, 11);
+    scene.background = new THREE.Color(0x241a13);
+    const camera = new THREE.PerspectiveCamera(31, mount.clientWidth / Math.max(mount.clientHeight, 1), 0.1, 100);
+    camera.position.set(0, 0.45, 12);
 
-    scene.add(new THREE.HemisphereLight(0xffefd2, 0x201711, 2.8));
-    const warm = new THREE.PointLight(0xffd49b, 8, 15);
-    warm.position.set(0, 1.8, 3);
-    scene.add(warm);
-    const green = new THREE.PointLight(0xaab978, 4, 10);
-    green.position.set(-5, -1, 2);
-    scene.add(green);
+    scene.add(new THREE.HemisphereLight(0xfff0d5, 0x1b120d, 2.0));
+    const key = new THREE.DirectionalLight(0xffe0b0, 4.2);
+    key.position.set(-4, 7, 7);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    scene.add(key);
+
+    const led = new THREE.RectAreaLight(0xffd28b, 7, 8.5, .45);
+    led.position.set(0, 2.55, 1.1);
+    led.lookAt(0, 0, 0);
+    scene.add(led);
+
+    const fill = new THREE.PointLight(0xffc779, 5, 10);
+    fill.position.set(0, 1, 2.5);
+    scene.add(fill);
 
     const cabinet = new THREE.Group();
-    const wood = new THREE.MeshStandardMaterial({ color: 0x5b3d29, roughness: 0.72 });
-    const darkWood = new THREE.MeshStandardMaterial({ color: 0x2e2119, roughness: 0.85 });
-    const brass = new THREE.MeshStandardMaterial({ color: 0xc5a15b, metalness: 0.7, roughness: 0.28 });
+    const back = new THREE.Mesh(
+      new THREE.BoxGeometry(11.8, 7.6, .35),
+      new THREE.MeshStandardMaterial({ color: 0x241912, roughness: .96 })
+    );
+    back.position.z = -1.15;
+    back.receiveShadow = true;
+    cabinet.add(back);
 
-    const add = (geometry: THREE.BufferGeometry, material: THREE.Material, position: [number, number, number]) => {
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x6a442c, roughness: .66 });
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x38251a, roughness: .8 });
+    const addCabinet = (geometry: THREE.BufferGeometry, material: THREE.Material, position: [number,number,number]) => {
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...position);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       cabinet.add(mesh);
       return mesh;
     };
 
-    add(new THREE.BoxGeometry(10.8, 7.2, 0.45), wood, [0, 0, -1.15]);
-    add(new THREE.BoxGeometry(10.2, 6.6, 0.25), darkWood, [0, 0, -0.88]);
-    for (const y of [-2.0, -0.1, 1.8]) {
-      add(new THREE.BoxGeometry(9.65, 0.14, 0.65), wood, [0, y, -0.45]);
-      add(new THREE.BoxGeometry(9.5, 0.05, 0.08), brass, [0, y + 0.08, -0.1]);
-    }
-    const leftDoor = add(new THREE.BoxGeometry(5.1, 6.8, 0.28), wood, [-2.65, 0, 0.15]);
-    const rightDoor = add(new THREE.BoxGeometry(5.1, 6.8, 0.28), wood, [2.65, 0, 0.15]);
-    leftDoor.name = "left-door";
-    rightDoor.name = "right-door";
-    add(new THREE.BoxGeometry(0.08, 5.9, 0.16), brass, [0, 0, 0.35]);
+    addCabinet(new THREE.BoxGeometry(12.2, .42, 1.0), edgeMat, [0, 3.78, -.65]);
+    addCabinet(new THREE.BoxGeometry(12.2, .42, 1.0), edgeMat, [0, -3.78, -.65]);
+    addCabinet(new THREE.BoxGeometry(.42, 7.2, 1.0), edgeMat, [-6.0, 0, -.65]);
+    addCabinet(new THREE.BoxGeometry(.42, 7.2, 1.0), edgeMat, [6.0, 0, -.65]);
+
+    const shelfYs = [-2.25, -.35, 1.55];
+    shelfYs.forEach((y) => {
+      addCabinet(new THREE.BoxGeometry(11.45, .18, .82), frameMat, [0, y, -.35]);
+      addCabinet(new THREE.BoxGeometry(11.25, .05, .05), new THREE.MeshStandardMaterial({ color: 0xd1a45d, metalness: .4, roughness: .3 }), [0, y + .11, .1]);
+    });
 
     scene.add(cabinet);
 
-    const particles = new THREE.Group();
-    for (let i = 0; i < 55; i += 1) {
-      const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.018 + Math.random() * 0.025, 8, 8),
-        new THREE.MeshBasicMaterial({ color: i % 2 ? 0xe7c56c : 0xb85b43, transparent: true, opacity: 0.35 }),
-      );
-      dot.position.set((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 7, (Math.random() - 0.5) * 3);
-      particles.add(dot);
-    }
-    scene.add(particles);
+    const objectLayer = new THREE.Group();
+    scene.add(objectLayer);
 
-    const motion = { z: 13, y: 0.45, left: 0, right: 0 };
-    anime({
-      targets: motion,
-      z: 9,
-      y: 0,
-      left: -0.04,
-      right: 0.04,
-      duration: 900,
-      easing: "easeOutExpo",
-      update: () => {
-        camera.position.z = motion.z;
-        camera.position.y = motion.y;
-        leftDoor.rotation.y = motion.left;
-        rightDoor.rotation.y = motion.right;
-      },
-    });
+    const rebuildObjects = () => {
+      while (objectLayer.children.length) {
+        const child = objectLayer.children.pop();
+        if (child) {
+          child.traverse((object) => {
+            const mesh = object as THREE.Mesh;
+            mesh.geometry?.dispose?.();
+            if (Array.isArray(mesh.material)) mesh.material.forEach((m) => m.dispose());
+            else mesh.material?.dispose?.();
+          });
+        }
+      }
+      const current = itemsRef.current.slice(0, 20);
+      current.forEach((item, index) => {
+        const object = makeIngredientObject(item.name, index);
+        const row = Math.floor(index / 7);
+        const col = index % 7;
+        object.position.set(-4.7 + col * 1.55, shelfYs[row % shelfYs.length] + .12, -.02 + (index % 2) * .18);
+        object.userData.itemId = item.id;
+        objectLayer.add(object);
+      });
+    };
+    rebuildObjects();
 
-    anime({
-      targets: particles.rotation,
-      y: Math.PI * 2,
-      duration: 8500,
-      easing: "linear",
-      loop: true,
-    });
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const handlePointer = (event: PointerEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(objectLayer.children, true);
+      const hit = hits.find((entry) => entry.object.userData.itemId || entry.object.parent?.userData.itemId);
+      if (hit) {
+        let target: THREE.Object3D | null = hit.object;
+        while (target && !target.userData.itemId) target = target.parent;
+        const item = itemsRef.current.find((candidate) => candidate.id === target?.userData.itemId);
+        if (item) onSelectRef.current(item);
+      }
+    };
+    renderer.domElement.addEventListener("pointerdown", handlePointer);
 
-    let raf = 0;
     const clock = new THREE.Clock();
+    let raf = 0;
     const render = () => {
       raf = requestAnimationFrame(render);
       const t = clock.getElapsedTime();
-      cabinet.position.y = Math.sin(t * 0.7) * 0.035;
-      cabinet.rotation.y = Math.sin(t * 0.35) * 0.018;
-      particles.position.y = Math.sin(t * 0.4) * 0.14;
+      objectLayer.children.forEach((object, index) => {
+        object.position.y += Math.sin(t * 1.2 + index) * .0007;
+        object.rotation.y += Math.sin(t * .5 + index) * .00025;
+      });
+      cabinet.rotation.y = Math.sin(t * .18) * .012;
       renderer.render(scene, camera);
     };
     render();
@@ -165,8 +268,7 @@ function ShelfScene() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      anime.remove(motion);
-      anime.remove(particles.rotation);
+      renderer.domElement.removeEventListener("pointerdown", handlePointer);
       renderer.dispose();
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
@@ -178,7 +280,7 @@ function ShelfScene() {
     };
   }, []);
 
-  return <div className="cupboard-three-layer" ref={mountRef} aria-hidden="true" />;
+  return <div className="cupboard-three-layer" ref={mountRef} aria-hidden="false" />;
 }
 
 export default function PantryCupboard({ items, query, onQueryChange, onAdd, onEdit, onDelete }: Props) {
@@ -218,7 +320,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
       </div>
 
       <div className="cupboard-stage">
-        <ShelfScene />
+        <ShelfScene items={visible} onSelect={setSelected} />
         <div className="cupboard-glow" />
         <div className="cupboard-items">
           {groups.map((group) => {
