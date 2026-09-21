@@ -89,28 +89,33 @@ def _normalize_answer(answer: object) -> list[dict]:
 def _predict(client: Client, image_path: str) -> object:
     image = handle_file(image_path)
 
-    # The Space has one public BLIP prediction endpoint. Let Gradio resolve
-    # the endpoint index first, which avoids breaking if the Space renames
-    # /detect_ingredient to the default /predict endpoint.
-    try:
-        return client.predict(image)
-    except Exception as first_error:
-        last_error = first_error
+    # The Hugging Face Space exposes named Gradio functions. Call the
+    # dedicated ingredient endpoint first so the Kitchen app never falls
+    # through to the generic VQA question endpoint.
+    last_error: Exception | None = None
 
-    for api_name in ("/detect_ingredient", "/predict"):
+    for api_name in (
+        "/detect_main_ingredient",
+        "/analyze_ingredients",
+        "/predict",
+    ):
         try:
             return client.predict(image, api_name=api_name)
         except Exception as exc:
             last_error = exc
 
     raise VisionError(
-        f"Hugging Face BLIP Space request failed: {str(last_error)[:300]}"
+        "Hugging Face BLIP Space request failed. "
+        f"Last endpoint error: {str(last_error)[:300]}"
     )
 
 
 def _run_blip(image_path: str) -> object:
     try:
-        client = Client(settings.huggingface_space_url)
+        client = Client(
+            settings.huggingface_space_url,
+            verbose=False,
+        )
         return _predict(client, image_path)
     except VisionError:
         raise
