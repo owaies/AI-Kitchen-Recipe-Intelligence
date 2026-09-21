@@ -765,3 +765,61 @@ button:not(:disabled):active{transform:translateY(1px) scale(.985)}
 @media(prefers-reduced-motion:reduce){
   .cupboard-item,.ingredient-drawer,.drawer-image img{animation:none!important;transition:none!important}
 }
+
+/* Photoreal pantry scene */
+.cupboard-stage{
+  min-height:760px;
+  background:
+    radial-gradient(circle at 50% 30%,rgba(255,214,147,.12),transparent 34%),
+    linear-gradient(180deg,#2b1d15 0%,#18110d 100%);
+  box-shadow:0 35px 90px rgba(39,27,18,.28),inset 0 1px rgba(255,255,255,.08);
+}
+.cupboard-three-layer{
+  filter:saturate(.98) contrast(1.04);
+}
+.cupboard-three-layer canvas{
+  image-rendering:auto;
+}
+.cupboard-glow{
+  background:
+    radial-gradient(ellipse at 50% 23%,rgba(255,210,137,.2),transparent 32%),
+    radial-gradient(ellipse at 50% 70%,rgba(104,122,67,.08),transparent 42%);
+  filter:blur(22px);
+}
+.cupboard-items{
+  pointer-events:none;
+  padding:55px 6% 55px;
+  gap:22px;
+}
+.cupboard-shelf-row{
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(25,17,12,.12),rgba(18,12,9,.24));
+  border-color:rgba(255,231,190,.08);
+  box-shadow:inset 0 1px rgba(255,244,214,.05),0 16px 35px rgba(0,0,0,.08);
+  backdrop-filter:none;
+}
+.cupboard-item-grid{
+  pointer-events:none;
+}
+.cupboard-item{
+  pointer-events:auto;
+  background:linear-gradient(145deg,rgba(255,250,239,.9),rgba(235,222,197,.82));
+  backdrop-filter:blur(7px);
+  box-shadow:0 8px 22px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.72);
+}
+.cupboard-item:hover{
+  box-shadow:0 24px 44px rgba(0,0,0,.32),0 0 0 1px rgba(232,199,102,.25);
+}
+.shelf-label{
+  text-shadow:0 2px 14px rgba(0,0,0,.55);
+}
+.ingredient-photo{
+  background:linear-gradient(145deg,#e9ddc5,#c9b99b);
+}
+@media(max-width:1000px){
+  .cupboard-stage{min-height:820px}
+}
+@media(max-width:700px){
+  .cupboard-stage{min-height:960px}
+  .cupboard-items{padding:42px 12px 45px}
+}
