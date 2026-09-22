@@ -637,7 +637,7 @@ function App() {
         </motion.div>
       )}
 
-      <AnimatePresence>{toast && <motion.div initial={{opacity:0,x:30,y:10}} animate={{opacity:1,x:0,y:0}} exit={{opacity:0,x:30}} style={{position:"fixed",right:24,bottom:24,zIndex:120000,minWidth:240,maxWidth:360,padding:"13px 15px",borderRadius:12,background:"var(--espresso)",color:"#fff",boxShadow:"0 18px 45px rgba(46,36,29,.24)",fontSize:12,display:"flex",alignItems:"center",gap:9}}><Check size={15} color="var(--butter)" />{toast}<i style={{position:"absolute",left:0,bottom:0,height:2,width:"100%",background:"var(--butter)",transformOrigin:"left",animation:"toast-life 2.8s linear forwards"}} /></motion.div>}</AnimatePresence>
+      <AnimatePresence>{toast && <motion.div initial={{opacity:0,x:30,y:10}} animate={{opacity:1,x:0,y:0}} exit={{opacity:0,x:30}} style={{position:"fixed",right:24,bottom:24,zIndex:120000,minWidth:240,maxWidth:360,padding:"13px 15px",borderRadius:12,background:"var(--espresso)",color:"#fff",boxShadow:"0 18px 45px rgba(46,36,29,.24)",fontSize:12,display:"flex",alignItems:"center",gap:9}}><Check size={15} color="var(--butter)" />{toast}<motion.i initial={{scaleX:1}} animate={{scaleX:0}} transition={{duration:2.8,ease:"linear"}} style={{position:"absolute",left:0,bottom:0,height:2,width:"100%",background:"var(--butter)",transformOrigin:"left"}} /></motion.div>}</AnimatePresence>
       {cookRecipe && <CookMode recipe={cookRecipe} onClose={() => setCookRecipe(null)} />}
 
       {editing && (
