@@ -91,7 +91,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
         ))}
       </div>
 
-      <div className={pantryOpen ? "photo-pantry-stage pantry-open" : "photo-pantry-stage"}><div className="pantry-doors" aria-hidden="true"><span /><span /></div>
+      <div className={pantryOpen ? "photo-pantry-stage pantry-open" : "photo-pantry-stage"}><div className="pantry-doors" aria-hidden="true" style={{position:"absolute",inset:0,zIndex:5,display:"flex",pointerEvents:"none",overflow:"hidden"}}><span style={{width:"50%",height:"100%",background:"linear-gradient(90deg,#352319,#5a3b25 55%,#2a1a12)",boxShadow:"inset 0 0 45px rgba(0,0,0,.35)",transform:pantryOpen?"translateX(-100%)":"translateX(0)",opacity:pantryOpen?0:1,transition:"transform .9s cubic-bezier(.16,1,.3,1),opacity .7s ease"}} /><span style={{width:"50%",height:"100%",background:"linear-gradient(90deg,#2a1a12,#5a3b25 45%,#352319)",boxShadow:"inset 0 0 45px rgba(0,0,0,.35)",transform:pantryOpen?"translateX(100%)":"translateX(0)",opacity:pantryOpen?0:1,transition:"transform .9s cubic-bezier(.16,1,.3,1),opacity .7s ease"}} /></div>
         <div className="photo-pantry-backdrop" />
         <div className="photo-pantry-light" />
         <div className="photo-pantry-shelves">
