@@ -1231,3 +1231,6 @@ body.cook-mode-open{overflow:hidden}
 }
 
 .vision-stages{display:grid;gap:5px;margin:4px 0}.vision-stages span{display:flex;align-items:center;gap:7px;color:#a09384;font:9px "DM Mono";transition:color .25s ease}.vision-stages span.done{color:var(--olive)}.vision-stages i{width:18px;height:18px;border:1px solid #d7cbb9;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:8px}.vision-stages span.done i{background:var(--olive);border-color:var(--olive);color:#fff}
+
+/* Page entrance choreography */
+.page-motion-shell>*{animation:page-cascade .52s cubic-bezier(.22,.8,.22,1) both}.page-motion-shell>.section-head{animation-delay:.04s}.page-motion-shell>.hero{animation-delay:.02s}.page-motion-shell>.stats{animation-delay:.08s}.page-motion-shell>.pantry-strip{animation-delay:.12s}.page-motion-shell>.recipe-grid{animation-delay:.16s}.page-motion-shell>.bottom-grid{animation-delay:.2s}@keyframes page-cascade{from{opacity:0;transform:translateY(14px);filter:blur(4px)}to{opacity:1;transform:none;filter:blur(0)}}@media(prefers-reduced-motion:reduce){.page-motion-shell>*{animation:none!important}}
