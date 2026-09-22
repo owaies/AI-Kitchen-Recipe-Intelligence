@@ -538,8 +538,8 @@ function App() {
       </main>
 
       {selectedRecipe && (
-        <div className="modal-backdrop" onMouseDown={() => setSelectedRecipe(null)}>
-          <div className="modal recipe-detail-modal" onMouseDown={(e) => e.stopPropagation()}>
+        <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onMouseDown={() => setSelectedRecipe(null)}>
+          <motion.div className="modal recipe-detail-modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedRecipe(null)}><X size={18} /></button>
             <div className="recipe-detail-image"><img src={selectedRecipe.image} alt="" /></div>
             <span className="eyebrow"><Sparkles size={13} /> {selectedRecipe.match}% pantry match</span>
@@ -550,15 +550,15 @@ function App() {
             <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
             <button className="primary full" onClick={() => { setSelectedRecipe(null); setCookRecipe(selectedRecipe); }}><Utensils size={15} /> Start cooking</button>
             <button className="primary full save-generated" disabled={saveBusy} onClick={async () => { setSaveBusy(true); try { await saveGeneratedRecipe(selectedRecipe); setSaved((items) => items.includes(selectedRecipe.title) ? items : [...items, selectedRecipe.title]); setAiMessage("Recipe saved to your private collection."); } catch (error) { setAiMessage(error instanceof Error ? error.message : "Could not save recipe."); } finally { setSaveBusy(false); } }}>{saveBusy ? "Saving..." : saved.includes(selectedRecipe.title) ? "Saved to collection ✓" : "Save recipe to collection"}</button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {cookRecipe && <CookMode recipe={cookRecipe} onClose={() => setCookRecipe(null)} />}
 
       {editing && (
-        <div className="modal-backdrop" onMouseDown={() => !pantryBusy && setEditing(null)}>
-          <div className="modal edit-modal" onMouseDown={(e) => e.stopPropagation()}>
+        <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onMouseDown={() => !pantryBusy && setEditing(null)}>
+          <motion.div className="modal edit-modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setEditing(null)}><X size={18} /></button>
             <span className="eyebrow">Pantry · Edit</span><h2>Refine ingredient</h2>
             <div className="edit-grid">
@@ -570,13 +570,13 @@ function App() {
             </div>
             {pantryError && <div className="auth-message">{pantryError}</div>}
             <button className="primary full" onClick={savePantryEdit} disabled={pantryBusy}>{pantryBusy ? "Saving..." : <>Save changes <Check size={15} /></>}</button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
       {showAdd && (
-        <div className="modal-backdrop" onMouseDown={() => setShowAdd(false)}>
-          <div className="modal" onMouseDown={(e) => e.stopPropagation()}>
+        <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onMouseDown={() => setShowAdd(false)}>
+          <motion.div className="modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowAdd(false)}><X size={18} /></button>
             <span className="eyebrow"><Plus size={13} /> Pantry</span>
             <h2>Add an ingredient</h2>
@@ -585,8 +585,8 @@ function App() {
             <label className="photo-option photo-upload"><Camera size={18} /><div><strong>Ingredient photo</strong><span>Upload a photo, then confirm ingredients before saving.</span></div><input type="file" accept="image/*" onChange={handleIngredientPhoto} /></label>
             {photoPreview && <div className="photo-review"><img src={photoPreview} alt="Ingredient upload preview" /><div><span className="eyebrow">BLIP vision · {photoName}</span><strong>{detectedIngredients.length ? "Review detected ingredients" : "Detect ingredients in this photo"}</strong>{detectedIngredients.length > 0 ? <div className="quick-ingredients">{detectedIngredients.map((item) => <button key={item.name} type="button" className={photoIngredients.includes(item.name) ? "selected" : ""} onClick={() => photoIngredients.includes(item.name) ? setPhotoIngredients((items) => items.filter((x) => x !== item.name)) : addPhotoIngredient(item.name)}>{item.name}</button>)}</div> : <button type="button" className="primary full" onClick={detectPhotoIngredients} disabled={photoBusy}><Sparkles size={15} /> {photoBusy ? "Analyzing photo with BLIP..." : "Detect ingredients with BLIP"}</button>}<small>{photoMessage}</small>{detectedIngredients.length > 0 && <button type="button" className="primary full" onClick={addConfirmedPhotoIngredients} disabled={!photoIngredients.length || photoBusy}>Add confirmed ingredients</button>}</div></div>}
             <button className="primary full" onClick={addIngredient}>Add to pantry <ArrowRight size={15} /></button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
       </div>
     </>
