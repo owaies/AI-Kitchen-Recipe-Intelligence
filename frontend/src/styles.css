@@ -1240,3 +1240,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* Living empty states */
 .recipe-empty svg,.shopping-empty svg,.cupboard-empty svg{animation:empty-float 2.8s ease-in-out infinite}.recipe-empty,.shopping-empty,.cupboard-empty{overflow:hidden;position:relative}.recipe-empty:after,.shopping-empty:after,.cupboard-empty:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,75,60,.08),transparent 70%);animation:empty-glow 4s ease-in-out infinite;pointer-events:none}@keyframes empty-float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(2deg)}}@keyframes empty-glow{0%,100%{transform:scale(.8);opacity:.4}50%{transform:scale(1.2);opacity:.8}}@media(prefers-reduced-motion:reduce){.recipe-empty svg,.shopping-empty svg,.cupboard-empty svg,.recipe-empty:after,.shopping-empty:after,.cupboard-empty:after{animation:none}}
+
+/* Soft photographic reveal */
+.smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img,.recipe-image img{animation:image-reveal .7s cubic-bezier(.22,.8,.22,1) both}@keyframes image-reveal{from{opacity:0;filter:blur(15px);transform:scale(1.03)}to{opacity:1;filter:blur(0);transform:scale(1)}}@media(prefers-reduced-motion:reduce){.smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img,.recipe-image img{animation:none}}
