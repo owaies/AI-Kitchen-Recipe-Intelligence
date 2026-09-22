@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Check, Plus, ShoppingBasket, Trash2, X } from "lucide-react";
+import { CalendarDays, Check, Clock3, Plus, ShoppingBasket, Trash2, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { createMealPlan, deleteMealPlan, listMealPlans, listSavedRecipeOptions, type MealPlanRow, type SavedRecipeOption } from "./services/mealPlans";
 import { addUniqueShoppingItems } from "./services/shopping";
+import { listPantryItems } from "./services/pantry";
+import { buildMealPlanFocus, type MealPlanFocus } from "./services/mealPlanIntelligence";
 
 const meals: { value: MealPlanRow["meal_type"]; label: string }[] = [
   { value: "breakfast", label: "Breakfast" },
@@ -30,10 +32,18 @@ function missingIngredients(recipe: SavedRecipeOption) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function urgencyLabel(value: MealPlanFocus["ingredients"][number]) {
+  if (value.urgency === "today") return "today";
+  if (value.urgency === "soon") return value.daysLeft === 1 ? "1 day" : `${value.daysLeft} days`;
+  if (value.urgency === "expired") return "expired";
+  return value.daysLeft === null ? "no date" : `${value.daysLeft} days`;
+}
+
 export default function MealPlanner() {
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const [plans, setPlans] = useState<MealPlanRow[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipeOption[]>([]);
+  const [pantryFocus, setPantryFocus] = useState<MealPlanFocus | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [date, setDate] = useState(iso(startOfWeek(new Date())));
   const [mealType, setMealType] = useState<MealPlanRow["meal_type"]>("dinner");
@@ -52,8 +62,16 @@ export default function MealPlanner() {
   useEffect(() => {
     setDate(days[0]);
     if (!supabase) return;
-    Promise.all([listMealPlans(days[0], days[6]), listSavedRecipeOptions()])
-      .then(([nextPlans, nextRecipes]) => { setPlans(nextPlans); setSavedRecipes(nextRecipes); })
+    Promise.all([
+      listMealPlans(days[0], days[6]),
+      listSavedRecipeOptions(),
+      listPantryItems(),
+    ])
+      .then(([nextPlans, nextRecipes, pantry]) => {
+        setPlans(nextPlans);
+        setSavedRecipes(nextRecipes);
+        setPantryFocus(buildMealPlanFocus(pantry));
+      })
       .catch((error) => setMessage(error instanceof Error ? error.message : "Could not load your meal plan."));
   }, [days]);
 
@@ -128,6 +146,28 @@ export default function MealPlanner() {
       </div>
 
       {message && <div className="pantry-error">{message}</div>}
+
+      {pantryFocus && (
+        <section className="kitchen-intelligence meal-plan-intelligence">
+          <div className="intelligence-heading">
+            <span className="eyebrow"><Clock3 size={13} /> Freshness-aware planning</span>
+            <h2>{pantryFocus.headline}</h2>
+            <p>{pantryFocus.description}</p>
+          </div>
+          <div className="intelligence-metrics">
+            {pantryFocus.ingredients.map((item) => (
+              <div key={item.id} className={item.urgency === "expired" || item.urgency === "today" ? "urgent" : ""}>
+                <strong>{item.name}</strong>
+                <span>{urgencyLabel(item)}</span>
+              </div>
+            ))}
+            {pantryFocus.ingredients.length === 0 && (
+              <div><strong>Pantry ready</strong><span>No expiry pressure</span></div>
+            )}
+            <button onClick={() => setShowAdd(true)}>Plan around it <Plus size={14} /></button>
+          </div>
+        </section>
+      )}
 
       <div className="week-toolbar">
         <button className="ghost" onClick={() => setWeek((current) => new Date(current.getTime() - 7 * 86400000))}>← Previous</button>
