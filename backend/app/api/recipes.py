@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.app.services.openrouter import OpenRouterError, generate_recipe
+from backend.app.services.openrouter import OpenRouterError, generate_recipe, stream_recipe
 from backend.app.services.vision import VisionError, detect_ingredients
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
@@ -33,6 +34,51 @@ async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
     except VisionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
+
+
+
+@router.post("/generate/stream")
+async def stream_recipe_endpoint(request: RecipeRequest) -> StreamingResponse:
+    pantry_text = ", ".join(
+        f"{item.name} ({item.quantity:g} {item.unit})" if item.quantity is not None and item.unit
+        else item.name
+        for item in request.pantry
+    )
+    preferences = ", ".join(request.dietary_preferences) or "none specified"
+    prompt = f"""
+You are the recipe intelligence engine for a private kitchen app.
+Create ONE practical recipe using the user's pantry as the primary source.
+
+Pantry: {pantry_text}
+Goal: {request.goal}
+Maximum cooking time: {request.max_time_minutes} minutes
+Dietary preferences: {preferences}
+Preferred cuisine: {request.cuisine}
+
+Rules:
+- Prefer ingredients already in the pantry.
+- Follow the preferred cuisine when one is selected. If it is Any cuisine, choose the cuisine that best fits the pantry.
+- Clearly list anything missing instead of pretending it is available.
+- Keep the recipe realistic for a home kitchen.
+- Respect every dietary preference.
+- Offer practical substitutions.
+- Keep the recipe within the requested maximum time.
+- Nutrition values are estimates, not medical advice.
+- Return exactly one JSON object and no markdown.
+""".strip()
+
+    async def events():
+        try:
+            async for event in stream_recipe(prompt):
+                yield f"data: {event}\n\n"
+        except OpenRouterError as exc:
+            yield f'data: {{"type":"error","message":{__import__("json").dumps(str(exc))}}}\n\n'
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
 
 @router.post("/generate")
 async def generate_recipe_endpoint(request: RecipeRequest) -> dict:
