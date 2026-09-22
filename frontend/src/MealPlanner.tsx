@@ -210,7 +210,7 @@ export default function MealPlanner() {
                         <span>{recipeName(planned.recipe_id) ?? planned.notes ?? "Kitchen idea"}</span>
                         {planned.notes && recipeName(planned.recipe_id) && <em>{planned.notes}</em>}
                         <button onClick={() => remove(planned.id)} aria-label={"Remove " + meal.label}><Trash2 size={12} /></button>
-                      </div>
+                      </motion.div>
                     ) : <button className="slot-add" onClick={() => { setDate(day); setMealType(meal.value); setShowAdd(true); }}>+ Add</button>}
                   </div>
                 );
