@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, Plus, ShoppingBasket, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { createShoppingItem, deleteShoppingItem, listShoppingItems, toggleShoppingItem, type ShoppingItem } from "./services/shopping";
@@ -87,14 +88,14 @@ export default function ShoppingList({ onRecipes }: { onRecipes: () => void }) {
             <span>Add groceries manually, or use missing ingredients from a recipe as your next step.</span>
             <button className="ghost" onClick={onRecipes}>Explore recipes <ArrowRight size={14} /></button>
           </div>
-        ) : items.map((item) => (
-          <article className={item.is_purchased ? "shopping-row purchased" : "shopping-row"} key={item.id}>
-            <button className="shopping-check" onClick={() => toggle(item)} aria-label={item.is_purchased ? "Mark not purchased" : "Mark purchased"}><Check size={15} /></button>
+        ) : <AnimatePresence initial={false} mode="popLayout">{items.map((item) => (
+          <motion.article layout initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,height:0,marginBottom:0}} transition={{type:"spring",stiffness:360,damping:28}} className={item.is_purchased ? "shopping-row purchased" : "shopping-row"} key={item.id}>
+            <motion.button whileTap={{scale:.82}} animate={{rotate:item.is_purchased?0:-1}} className="shopping-check" onClick={() => toggle(item)} aria-label={item.is_purchased ? "Mark not purchased" : "Mark purchased"}><motion.span initial={false} animate={{scale:item.is_purchased?1:0.72,opacity:item.is_purchased?1:.55}}><Check size={15} /></motion.span></motion.button>
             <div><strong>{item.name}</strong><small>{item.source === "recipe" ? "From recipe" : "Added manually"}</small></div>
             <span>{item.quantity ?? 1} {item.unit ?? "item"}</span>
             <button className="shopping-remove" onClick={() => remove(item)} aria-label={"Remove " + item.name}><X size={15} /></button>
-          </article>
-        ))}
+          </motion.article>
+        ))}</AnimatePresence>}
       </div>
     </section>
   );
