@@ -102,7 +102,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
                 <div className="photo-ingredient-row">
                   {groupItems.map((item) => (
                     <button type="button" className={`photo-ingredient freshness-${freshnessFor(item)}`} style={{ borderColor: item.days < 0 ? "#c6a99e" : item.days <= 0 ? "#c94b3c88" : item.days <= 2 ? "#c94b3c55" : "#667a3e22", opacity: item.days < 0 ? .68 : 1 }} key={item.id} onClick={() => setSelected(item)}>
-                      <motion.span className="photo-ingredient-image" layout transition={{ type: "spring", stiffness: 320, damping: 28 }}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
+                      <motion.span className="photo-ingredient-image" layoutId={`ingredient-image-${item.id}`} layout transition={{ type: "spring", stiffness: 320, damping: 28 }}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
                       <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days < 0 ? "Expired" : item.days === 0 ? "Use today" : item.days <= 2 ? "Use soon" : item.expiry}</em></span>
                     </button>
                   ))}
@@ -120,7 +120,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
         <motion.div className="ingredient-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onClick={() => setSelected(null)}>
           <motion.aside className="ingredient-drawer" initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} onClick={(event) => event.stopPropagation()}>
             <button className="drawer-close" onClick={() => setSelected(null)} aria-label="Close"><X size={17} /></button>
-            <div className="drawer-image"><img src={ingredientImage(selected.name)} alt={selected.name} /></div>
+            <motion.div layoutId={`ingredient-image-${selected.id}`} className="drawer-image"><img src={ingredientImage(selected.name)} alt={selected.name} /></motion.div>
             <span className="eyebrow">{selected.category}</span>
             <h3>{selected.name}</h3>
             <div className="drawer-stats"><div><small>Quantity</small><strong>{selected.amount}</strong></div><div><small>Expiry</small><strong className={selected.days <= 2 ? "urgent-text" : ""}>{selected.expiry}</strong></div></div>
