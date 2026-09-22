@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
 Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
@@ -364,6 +365,7 @@ function App() {
         <nav>
           {["Overview", "Pantry", "Recipes", "Meal plan", "Shopping list"].map((item) => (
             <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)}>
+              {active === item && <motion.span layoutId="active-nav-indicator" className="nav-active-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <span>{item}</span><ChevronRight size={15} />
             </button>
           ))}
@@ -389,6 +391,15 @@ function App() {
         </header>
 
         <div className="content">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={active}
+            className="page-motion-shell"
+            initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+            transition={{ duration: 0.42, ease: [0.22, 0.8, 0.22, 1] }}
+          >
           {active === "Pantry" ? (
             <PantryCupboard
               items={pantry}
@@ -521,6 +532,8 @@ function App() {
           </section>
             </>
           )}
+          </motion.div>
+        </AnimatePresence>
         </div>
       </main>
 
