@@ -142,6 +142,7 @@ function App() {
   const [detectedIngredients, setDetectedIngredients] = useState<DetectedIngredient[]>([]);
   const [photoMessage, setPhotoMessage] = useState("");
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [photoStage, setPhotoStage] = useState(0);
 
   useEffect(() => {
@@ -204,6 +205,11 @@ function App() {
     return () => handlers.forEach((cleanup) => cleanup());
   }, [active]);
 
+  const showToast = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast((current) => current === message ? null : current), 2800);
+  };
+
   const navigateTo = (page: string) => {
     if (page === active || transitionScene) return;
 
@@ -261,6 +267,7 @@ function App() {
     }
     setNewIngredient("");
     setShowAdd(false);
+    showToast(`${name} added to your pantry`);
   };
 
   const openEdit = (item: PantryItem) => {
@@ -624,11 +631,13 @@ function App() {
             {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
             <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
             <button className="primary full" onClick={() => { setSelectedRecipe(null); setCookRecipe(selectedRecipe); }}><Utensils size={15} /> Start cooking</button>
-            <button className="primary full save-generated" disabled={saveBusy} onClick={async () => { setSaveBusy(true); try { await saveGeneratedRecipe(selectedRecipe); setSaved((items) => items.includes(selectedRecipe.title) ? items : [...items, selectedRecipe.title]); setAiMessage("Recipe saved to your private collection."); } catch (error) { setAiMessage(error instanceof Error ? error.message : "Could not save recipe."); } finally { setSaveBusy(false); } }}>{saveBusy ? "Saving..." : saved.includes(selectedRecipe.title) ? "Saved to collection ✓" : "Save recipe to collection"}</button>
+            <button className="primary full save-generated" disabled={saveBusy} onClick={async () => { setSaveBusy(true); try { await saveGeneratedRecipe(selectedRecipe); setSaved((items) => items.includes(selectedRecipe.title) ? items : [...items, selectedRecipe.title]); setAiMessage("Recipe saved to your private collection.");
+        showToast("Recipe saved to your collection"); } catch (error) { setAiMessage(error instanceof Error ? error.message : "Could not save recipe."); } finally { setSaveBusy(false); } }}>{saveBusy ? "Saving..." : saved.includes(selectedRecipe.title) ? "Saved to collection ✓" : "Save recipe to collection"}</button>
           </motion.div>
         </motion.div>
       )}
 
+      <AnimatePresence>{toast && <motion.div initial={{opacity:0,x:30,y:10}} animate={{opacity:1,x:0,y:0}} exit={{opacity:0,x:30}} style={{position:"fixed",right:24,bottom:24,zIndex:120000,minWidth:240,maxWidth:360,padding:"13px 15px",borderRadius:12,background:"var(--espresso)",color:"#fff",boxShadow:"0 18px 45px rgba(46,36,29,.24)",fontSize:12,display:"flex",alignItems:"center",gap:9}}><Check size={15} color="var(--butter)" />{toast}<i style={{position:"absolute",left:0,bottom:0,height:2,width:"100%",background:"var(--butter)",transformOrigin:"left",animation:"toast-life 2.8s linear forwards"}} /></motion.div>}</AnimatePresence>
       {cookRecipe && <CookMode recipe={cookRecipe} onClose={() => setCookRecipe(null)} />}
 
       {editing && (
