@@ -48,6 +48,8 @@ function ingredientImage(name: string) {
   return key ? imageByIngredient[key] : "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=88";
 }
 
+function freshnessFor(item: CupboardItem) { if (item.days < 0) return "expired"; if (item.days === 0) return "today"; if (item.days <= 2) return "soon"; return "fresh"; }
+
 function categoryFor(item: CupboardItem) {
   const value = item.category.toLowerCase();
   if (value.includes("dairy") || value.includes("protein") || value.includes("photo import") && /chicken|egg|paneer|milk/i.test(item.name)) return "dairy";
@@ -99,9 +101,9 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
                 <div className="photo-shelf-label">{groupNames[group]}</div>
                 <div className="photo-ingredient-row">
                   {groupItems.map((item) => (
-                    <button type="button" className={item.days <= 2 ? "photo-ingredient expiring" : "photo-ingredient"} key={item.id} onClick={() => setSelected(item)}>
+                    <button type="button" className={`photo-ingredient freshness-${freshnessFor(item)}`} key={item.id} onClick={() => setSelected(item)}>
                       <motion.span className="photo-ingredient-image" layout transition={{ type: "spring", stiffness: 320, damping: 28 }}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
-                      <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days <= 2 ? "Use soon" : item.expiry}</em></span>
+                      <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days < 0 ? "Expired" : item.days === 0 ? "Use today" : item.days <= 2 ? "Use soon" : item.expiry}</em></span>
                     </button>
                   ))}
                   {!groupItems.length && category === "all" && <span className="photo-shelf-empty">Shelf waiting for ingredients</span>}
