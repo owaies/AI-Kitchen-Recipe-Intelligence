@@ -92,7 +92,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
         <div className="photo-pantry-light" />
         <div className="photo-pantry-shelves">
           {groups.map((group) => {
-            const groupItems = visible.filter((item) => categoryFor(item) === group).slice(0, 6);
+            const groupItems = visible.filter((item) => categoryFor(item) === group && item.id !== selected?.id).slice(0, 6);
             if (!groupItems.length && category !== "all") return null;
             return (
               <div className="photo-shelf" key={group}>
@@ -100,8 +100,8 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
                 <motion.div className="photo-ingredient-row" layout>
                   <AnimatePresence mode="popLayout">
                   {groupItems.map((item) => (
-                    <motion.button type="button" layout layoutId={`pantry-card-${item.id}`} className={item.days <= 2 ? "photo-ingredient expiring" : "photo-ingredient"} key={item.id} onClick={() => setSelected(item)} whileHover={{ y: -6, scale: 1.012 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 360, damping: 28 }}>
-                      <span className="photo-ingredient-image"><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></span>
+                    <motion.button type="button" layout className={item.days <= 2 ? "photo-ingredient expiring" : "photo-ingredient"} key={item.id} onClick={() => setSelected(item)} whileHover={{ y: -6, scale: 1.012 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 360, damping: 28 }}>
+                      <motion.span className="photo-ingredient-image" layoutId={`pantry-image-${item.id}`}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
                       <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days <= 2 ? "Use soon" : item.expiry}</em></span>
                     </motion.button>
                   ))}
@@ -117,10 +117,11 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
       </div>
 
       {selected && (
+        <AnimatePresence>
         <motion.div className="ingredient-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} onClick={() => setSelected(null)}>
           <motion.aside className="ingredient-drawer" initial={{ x: 70, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 70, opacity: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} onClick={(event) => event.stopPropagation()}>
             <button className="drawer-close" onClick={() => setSelected(null)} aria-label="Close"><X size={17} /></button>
-            <motion.div className="drawer-image" layoutId={`pantry-card-${selected.id}`} transition={{ type: "spring", stiffness: 300, damping: 28 }}><img src={ingredientImage(selected.name)} alt={selected.name} /></motion.div>
+            <motion.div className="drawer-image" layoutId={`pantry-image-${selected.id}`} transition={{ type: "spring", stiffness: 300, damping: 28 }}><img src={ingredientImage(selected.name)} alt={selected.name} /></motion.div>
             <span className="eyebrow">{selected.category}</span>
             <h3>{selected.name}</h3>
             <div className="drawer-stats"><div><small>Quantity</small><strong>{selected.amount}</strong></div><div><small>Expiry</small><strong className={selected.days <= 2 ? "urgent-text" : ""}>{selected.expiry}</strong></div></div>
@@ -131,6 +132,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
             </div>
           </motion.aside>
         </motion.div>
+        </AnimatePresence>
       )}
     </section>
   );
