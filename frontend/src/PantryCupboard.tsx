@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Edit3, PackageOpen, Plus, Search, Trash2, X } from "lucide-react";
 
 export type CupboardItem = {
@@ -61,6 +61,8 @@ function categoryFor(item: CupboardItem) {
 export default function PantryCupboard({ items, query, onQueryChange, onAdd, onEdit, onDelete }: Props) {
   const [selected, setSelected] = useState<CupboardItem | null>(null);
   const [category, setCategory] = useState("all");
+  const [pantryOpen, setPantryOpen] = useState(false);
+  useEffect(() => { const timer = window.setTimeout(() => setPantryOpen(true), 180); return () => window.clearTimeout(timer); }, []);
   const visible = useMemo(() => items.filter((item) => {
     const matchesQuery = item.name.toLowerCase().includes(query.toLowerCase());
     return matchesQuery && (category === "all" || categoryFor(item) === category);
@@ -89,7 +91,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
         ))}
       </div>
 
-      <div className="photo-pantry-stage">
+      <div className={pantryOpen ? "photo-pantry-stage pantry-open" : "photo-pantry-stage"}><div className="pantry-doors" aria-hidden="true"><span /><span /></div>
         <div className="photo-pantry-backdrop" />
         <div className="photo-pantry-light" />
         <div className="photo-pantry-shelves">
