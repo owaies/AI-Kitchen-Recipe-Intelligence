@@ -146,6 +146,7 @@ function App() {
   const [photoMessage, setPhotoMessage] = useState("");
   const [photoBusy, setPhotoBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [ingredientBridge, setIngredientBridge] = useState<{ name: string; image: string } | null>(null);
   const [photoStage, setPhotoStage] = useState(0);
 
   useEffect(() => {
@@ -212,6 +213,12 @@ function App() {
   const showToast = (message: string) => {
     setToast(message);
     window.setTimeout(() => setToast((current) => current === message ? null : current), 2800);
+  };
+
+  const findRecipesForIngredient = (item: { name: string }) => {
+    const image = "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80";
+    setIngredientBridge({ name: item.name, image });
+    window.setTimeout(() => { setIngredientBridge(null); navigateTo("Recipes"); }, 650);
   };
 
   const navigateTo = (page: string) => {
@@ -478,6 +485,7 @@ function App() {
               onAdd={() => setShowAdd(true)}
               onEdit={openEdit}
               onDelete={removePantryItem}
+              onFindRecipes={findRecipesForIngredient}
             />
           ) : active === "Shopping list" ? (
             <ShoppingList onRecipes={() => setActive("Recipes")} />
@@ -642,6 +650,7 @@ function App() {
       )}
 
       <AnimatePresence>{toast && <motion.div initial={{opacity:0,x:30,y:10}} animate={{opacity:1,x:0,y:0}} exit={{opacity:0,x:30}} style={{position:"fixed",right:24,bottom:24,zIndex:120000,minWidth:240,maxWidth:360,padding:"13px 15px",borderRadius:12,background:"var(--espresso)",color:"#fff",boxShadow:"0 18px 45px rgba(46,36,29,.24)",fontSize:12,display:"flex",alignItems:"center",gap:9}}><Check size={15} color="var(--butter)" />{toast}<motion.i initial={{scaleX:1}} animate={{scaleX:0}} transition={{duration:2.8,ease:"linear"}} style={{position:"absolute",left:0,bottom:0,height:2,width:"100%",background:"var(--butter)",transformOrigin:"left"}} /></motion.div>}</AnimatePresence>
+      <AnimatePresence>{ingredientBridge && <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} style={{position:"fixed",inset:0,zIndex:115000,background:"rgba(30,20,14,.88)",display:"grid",placeItems:"center",backdropFilter:"blur(14px)"}}><motion.div initial={{scale:.86,y:24}} animate={{scale:1,y:0}} style={{width:"min(520px,88vw)",borderRadius:24,overflow:"hidden",background:"var(--paper)",boxShadow:"0 30px 90px rgba(0,0,0,.35)"}}><img src={ingredientBridge.image} alt="" style={{width:"100%",height:240,objectFit:"cover"}}/><div style={{padding:26}}><span className="eyebrow">Ingredient → recipe intelligence</span><h2 style={{fontFamily:"Playfair Display",fontSize:38,margin:"9px 0"}}>Recipes using {ingredientBridge.name}</h2><p style={{color:"var(--muted)",fontSize:12}}>Carrying your ingredient into the recipe kitchen...</p><div style={{height:3,background:"#e9dfcf",overflow:"hidden"}}><motion.i initial={{scaleX:0}} animate={{scaleX:1}} transition={{duration:.65,ease:"easeInOut"}} style={{display:"block",height:"100%",background:"var(--tomato)",transformOrigin:"left"}} /></div></div></motion.div></motion.div>}</AnimatePresence>
       {cookRecipe && <CookMode recipe={cookRecipe} onClose={() => setCookRecipe(null)} />}
 
       {editing && (

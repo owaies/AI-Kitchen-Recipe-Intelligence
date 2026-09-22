@@ -18,6 +18,7 @@ type Props = {
   onAdd: () => void;
   onEdit: (item: CupboardItem) => void;
   onDelete: (item: CupboardItem) => void;
+  onFindRecipes: (item: CupboardItem) => void;
 };
 
 const imageByIngredient: Record<string, string> = {
@@ -58,7 +59,7 @@ function categoryFor(item: CupboardItem) {
   return "produce";
 }
 
-export default function PantryCupboard({ items, query, onQueryChange, onAdd, onEdit, onDelete }: Props) {
+export default function PantryCupboard({ items, query, onQueryChange, onAdd, onEdit, onDelete, onFindRecipes }: Props) {
   const [selected, setSelected] = useState<CupboardItem | null>(null);
   const [category, setCategory] = useState("all");
   const [pantryOpen, setPantryOpen] = useState(false);
@@ -129,7 +130,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
             <p>Stored in your kitchen memory. Use this ingredient in recipe intelligence or update its pantry details.</p>
             <div className="drawer-actions">
               <button className="primary" onClick={() => { setSelected(null); onEdit(selected); }}><Edit3 size={14} /> Edit</button>
-              <button className="danger-button" onClick={() => { setSelected(null); onDelete(selected); }}><Trash2 size={14} /> Remove</button>
+              <button className="ghost" onClick={() => { setSelected(null); onFindRecipes(selected); }}>Find recipes <Search size={14} /></button><button className="danger-button" onClick={() => { setSelected(null); onDelete(selected); }}><Trash2 size={14} /> Remove</button>
             </div>
           </motion.aside>
         </motion.div>
