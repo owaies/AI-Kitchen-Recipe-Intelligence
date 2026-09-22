@@ -15,7 +15,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "three": "^0.180.0",
-    "animejs": "^3.2.2"
+    "animejs": "^3.2.2",
+    "framer-motion": "^12.23.24"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
