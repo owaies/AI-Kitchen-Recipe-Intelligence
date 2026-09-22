@@ -14,7 +14,7 @@ import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
-import { generateAIRecipe } from "./services/aiRecipe";
+import { generateAIRecipe, streamAIRecipe } from "./services/aiRecipe";
 import { saveGeneratedRecipe } from "./services/savedRecipes";
 import { detectIngredientsFromPhoto, type DetectedIngredient } from "./services/vision";
 import type { Session } from "@supabase/supabase-js";
@@ -110,6 +110,9 @@ function App() {
   const [recipeResults, setRecipeResults] = useState<SmartRecipe[]>([]);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
+  const [aiStage, setAiStage] = useState("Ready");
+  const [aiStreamChars, setAiStreamChars] = useState(0);
+  const [aiReasoningTokens, setAiReasoningTokens] = useState<number | null>(null);
   const [aiGoal, setAiGoal] = useState("a practical dinner using the pantry");
   const [aiMaxTime, setAiMaxTime] = useState(45);
   const [aiCuisine, setAiCuisine] = useState("Any cuisine");
@@ -309,9 +312,23 @@ function App() {
   const generateAIRecipeFromPantry = async () => {
     setAiBusy(true);
     setAiMessage("");
+    setAiStage("Reading your pantry");
+    setAiStreamChars(0);
+    setAiReasoningTokens(null);
     try {
       const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-      const recipe = await generateAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine);
+      const recipe = await streamAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine, (update) => {
+        if (update.type === "start") setAiStage("Nemotron is thinking");
+        if (update.type === "delta") {
+          setAiStage("Building your recipe");
+          setAiStreamChars((count) => count + update.content.length);
+        }
+        if (update.type === "complete") {
+          setAiStage("Recipe assembled");
+          setAiReasoningTokens(update.reasoningTokens ?? null);
+        }
+        if (update.type === "error") setAiStage("AI service unavailable");
+      });
       setRecipeResults((items) => [recipe, ...items.filter((item) => item.id !== recipe.id)].slice(0, 6));
       setActive("Recipes");
     } catch (error) {
@@ -335,8 +352,10 @@ function App() {
             ? "Nemotron is currently unavailable because its API quota is exhausted. Showing pantry-engine recipes instead."
             : "Nemotron is temporarily unavailable. Showing pantry-engine recipes instead.",
         );
+        setAiStage("Using pantry engine");
       } else {
         setAiMessage("Nemotron could not generate a recipe right now. Please try again later.");
+        setAiStage("Generation stopped");
       }
     } finally {
       setAiBusy(false);
@@ -429,6 +448,20 @@ function App() {
                 </div>
                 <div className="recipe-actions"><button className="primary" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
+              {aiBusy && (
+                <motion.div className="ai-generation-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
+                  <div className="ai-generation-orb"><Sparkles size={18} /></div>
+                  <div className="ai-generation-copy">
+                    <span className="eyebrow">Live Nemotron generation</span>
+                    <strong>{aiStage}<i className="ai-pulse-dots">...</i></strong>
+                    <small>{aiStreamChars ? `${aiStreamChars} response characters received` : "Establishing the AI stream..."}</small>
+                  </div>
+                  <div className="ai-generation-meta">
+                    <span className="ai-signal"><i /> streaming</span>
+                    {aiReasoningTokens !== null && <span>{aiReasoningTokens} reasoning tokens</span>}
+                  </div>
+                </motion.div>
+              )}
               {aiMessage && <div className="pantry-error">{aiMessage}</div>}
               {recipeResults.length === 0 ? (
                 <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary" onClick={generateRecipes}>Generate recipes</button></div>
