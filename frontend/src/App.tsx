@@ -237,6 +237,11 @@ function App() {
       return;
     }
 
+    if (active === "Pantry" && page === "Recipes" && pantry.length) {
+      const first = [...pantry].sort((a,b) => a.days - b.days)[0];
+      setIngredientBridge({ name: first.name, image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=900&q=80" });
+      window.setTimeout(() => setIngredientBridge(null), 720);
+    }
     setTransitionScene(scene);
     window.setTimeout(() => {
       setActive(page);
