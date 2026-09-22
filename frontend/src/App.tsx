@@ -576,7 +576,7 @@ function App() {
             <button className="text-link" onClick={() => navigateTo("Pantry")}>View pantry <ArrowRight size={15} /></button>
           </section>
           <section className="pantry-strip">
-            {pantryLoading ? Array.from({length:4}).map((_,index) => <article className="ingredient-card kitchen-skeleton" key={index}><div className="skeleton-circle" /><div><i className="skeleton-line wide" /><i className="skeleton-line" /><i className="skeleton-line short" /></div><i className="skeleton-line tiny" /></article>) : filtered.slice(0,4).map((item) => (
+            {pantryLoading ? Array.from({length:4}).map((_,index) => <article className="ingredient-card kitchen-skeleton" key={index}><div style={{width:43,height:43,borderRadius:"50%",background:"linear-gradient(90deg,#eee5d7,#faf5eb,#eee5d7)",backgroundSize:"200% 100%",animation:"skeleton-shimmer 1.3s linear infinite"}} /><div style={{display:"grid",gap:7}}><i style={{display:"block",width:70,height:7,borderRadius:4,background:"#e8dfd1"}} /><i style={{display:"block",width:105,height:13,borderRadius:4,background:"#e8dfd1"}} /><i style={{display:"block",width:60,height:7,borderRadius:4,background:"#e8dfd1"}} /></div><i style={{width:40,height:7,borderRadius:4,background:"#e8dfd1"}} /></article>) : filtered.slice(0,4).map((item) => (
               <article className={item.days <= 1 ? "ingredient-card urgent" : "ingredient-card"} key={item.id}>
                 <div className="ingredient-icon">{item.name.slice(0, 1)}</div>
                 <div><span>{item.category}</span><h3>{item.name}</h3><p>{item.amount}</p></div>
