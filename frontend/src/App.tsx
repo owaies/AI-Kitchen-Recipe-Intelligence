@@ -493,7 +493,7 @@ function App() {
                 <motion.div className="smart-recipe-grid" layout>
                   <AnimatePresence mode="popLayout">
                   {recipeResults.map((recipe) => (
-                    <motion.article className="smart-recipe-card" layout key={recipe.id} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
+                    <motion.article className="smart-recipe-card" layout key={recipe.id} initial={{opacity:0,scale:.96,y:10}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:-8}} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
                       <motion.div layoutId={`recipe-image-${recipe.id}`} className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></motion.div>
                       <div className="smart-recipe-content"><motion.h3 layoutId={`recipe-title-${recipe.id}`}>{recipe.title}</motion.h3><p>{recipe.reason}</p>
                       <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
