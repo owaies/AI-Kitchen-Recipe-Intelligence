@@ -545,6 +545,7 @@ function App() {
                 </motion.div>
               )}
             </motion.div>
+            </section>
           ) : (
             <> 
           <section className="hero">
