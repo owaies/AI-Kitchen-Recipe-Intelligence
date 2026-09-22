@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { CalendarDays, Check, Clock3, Plus, ShoppingBasket, Trash2, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { createMealPlan, deleteMealPlan, listMealPlans, listSavedRecipeOptions, type MealPlanRow, type SavedRecipeOption } from "./services/mealPlans";
@@ -52,6 +53,7 @@ export default function MealPlanner() {
   const [busy, setBusy] = useState(false);
   const [groceryBusy, setGroceryBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => {
     const value = new Date(week);
@@ -99,6 +101,24 @@ export default function MealPlanner() {
       try { await deleteMealPlan(id); }
       catch (error) { setMessage(error instanceof Error ? error.message : "Could not remove meal."); }
     }
+  };
+
+  const moveMeal = async (id: string, targetDate: string, targetType: MealPlanRow["meal_type"]) => {
+    const source = plans.find((item) => item.id === id);
+    if (!source || (source.plan_date === targetDate && source.meal_type === targetType)) return;
+    try {
+      if (supabase) {
+        const moved = await createMealPlan({ plan_date: targetDate, meal_type: targetType, recipe_id: source.recipe_id, notes: source.notes });
+        if (moved) {
+          await deleteMealPlan(source.id);
+          setPlans((items) => [...items.filter((item) => item.id !== source.id && !(item.plan_date === targetDate && item.meal_type === targetType)), moved]);
+        }
+      } else {
+        setPlans((items) => items.map((item) => item.id === id ? { ...item, plan_date: targetDate, meal_type: targetType } : item));
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not move meal.");
+    } finally { setDraggingId(null); }
   };
 
   const buildGroceryList = async () => {
@@ -183,10 +203,10 @@ export default function MealPlanner() {
               {meals.map((meal) => {
                 const planned = plans.find((item) => item.plan_date === day && item.meal_type === meal.value);
                 return (
-                  <div className={planned ? "meal-slot filled" : "meal-slot"} key={meal.value}>
+                  <div className={planned ? "meal-slot filled" : "meal-slot"} key={meal.value} onDragOver={(event) => planned && event.preventDefault()} onDrop={() => draggingId && moveMeal(draggingId, day, meal.value)}>
                     <small>{meal.label}</small>
                     {planned ? (
-                      <div className="planned-meal">
+                      <motion.div draggable onDragStart={() => setDraggingId(planned.id)} onDragEnd={() => setDraggingId(null)} className="planned-meal" whileDrag={{scale:1.03,rotate:1,boxShadow:"0 18px 35px rgba(46,36,29,.2)"}}>
                         <span>{recipeName(planned.recipe_id) ?? planned.notes ?? "Kitchen idea"}</span>
                         {planned.notes && recipeName(planned.recipe_id) && <em>{planned.notes}</em>}
                         <button onClick={() => remove(planned.id)} aria-label={"Remove " + meal.label}><Trash2 size={12} /></button>
