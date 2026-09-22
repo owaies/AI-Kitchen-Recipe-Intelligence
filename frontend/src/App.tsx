@@ -111,6 +111,7 @@ function App() {
   const [active, setActive] = useState("Overview");
   const [transitionScene, setTransitionScene] = useState<"kitchen" | "cupboards" | "recipes" | "meal-plan" | "shopping" | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>(demoPantry);
+  const [pantryLoading, setPantryLoading] = useState(Boolean(supabase));
   const [query, setQuery] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
@@ -185,7 +186,8 @@ function App() {
             : 999,
         })));
       })
-      .catch((error) => console.error("Pantry load failed", error));
+      .catch((error) => console.error("Pantry load failed", error))
+      .finally(() => setPantryLoading(false));
   }, [session]);
 
   useEffect(() => {
@@ -574,7 +576,7 @@ function App() {
             <button className="text-link" onClick={() => navigateTo("Pantry")}>View pantry <ArrowRight size={15} /></button>
           </section>
           <section className="pantry-strip">
-            {filtered.slice(0, 4).map((item) => (
+            {pantryLoading ? Array.from({length:4}).map((_,index) => <article className="ingredient-card kitchen-skeleton" key={index}><div className="skeleton-circle" /><div><i className="skeleton-line wide" /><i className="skeleton-line" /><i className="skeleton-line short" /></div><i className="skeleton-line tiny" /></article>) : filtered.slice(0,4).map((item) => (
               <article className={item.days <= 1 ? "ingredient-card urgent" : "ingredient-card"} key={item.id}>
                 <div className="ingredient-icon">{item.name.slice(0, 1)}</div>
                 <div><span>{item.category}</span><h3>{item.name}</h3><p>{item.amount}</p></div>
