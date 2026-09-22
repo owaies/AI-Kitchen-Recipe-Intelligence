@@ -494,8 +494,8 @@ function App() {
                   <AnimatePresence mode="popLayout">
                   {recipeResults.map((recipe) => (
                     <motion.article className="smart-recipe-card" layout key={recipe.id} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-                      <div className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></div>
-                      <div className="smart-recipe-content"><h3>{recipe.title}</h3><p>{recipe.reason}</p>
+                      <motion.div layoutId={`recipe-image-${recipe.id}`} className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></motion.div>
+                      <div className="smart-recipe-content"><motion.h3 layoutId={`recipe-title-${recipe.id}`}>{recipe.title}</motion.h3><p>{recipe.reason}</p>
                       <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
                       <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
                       <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
@@ -600,9 +600,9 @@ function App() {
         <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onMouseDown={() => setSelectedRecipe(null)}>
           <motion.div className="modal recipe-detail-modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedRecipe(null)}><X size={18} /></button>
-            <div className="recipe-detail-image"><img src={selectedRecipe.image} alt="" /></div>
+            <motion.div layoutId={`recipe-image-${selectedRecipe.id}`} className="recipe-detail-image"><img src={selectedRecipe.image} alt="" /></motion.div>
             <span className="eyebrow"><Sparkles size={13} /> {selectedRecipe.match}% pantry match</span>
-            <h2>{selectedRecipe.title}</h2><p>{selectedRecipe.reason}</p>
+            <motion.h2 layoutId={`recipe-title-${selectedRecipe.id}`}>{selectedRecipe.title}</motion.h2><p>{selectedRecipe.reason}</p>
             <div className="nutrition-strip"><span><b>{selectedRecipe.nutrition.calories}</b> kcal</span><span><b>{selectedRecipe.nutrition.protein}g</b> protein</span><span><b>{selectedRecipe.nutrition.carbs}g</b> carbs</span><span><b>{selectedRecipe.nutrition.fat}g</b> fat</span></div>
             <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
             {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
