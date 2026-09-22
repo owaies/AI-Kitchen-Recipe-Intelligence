@@ -19,12 +19,4 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package.json
       - run: npm install
-      - name: Run npm run build
-        run: npm run build 2>&1 | tee build.log
-        continue-on-error: true
-      - name: Upload build log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-build-log
-          path: frontend/build.log
+      - run: npm run build
