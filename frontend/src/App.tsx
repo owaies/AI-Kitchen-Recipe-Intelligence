@@ -21,6 +21,22 @@ import type { Session } from "@supabase/supabase-js";
 
 type SelectOption = { value: string | number; label: string };
 
+function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    const duration = 650;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [value]);
+  return <>{display}{suffix}</>;
+}
+
 function CustomSelect({ label, value, options, onChange }: { label: string; value: string | number; options: SelectOption[]; onChange: (value: string | number) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -603,7 +619,7 @@ function App() {
             <motion.div layoutId={`recipe-image-${selectedRecipe.id}`} className="recipe-detail-image" onPointerMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty("--rx", `${((event.clientX - rect.left) / rect.width - .5) * -18}px`); event.currentTarget.style.setProperty("--ry", `${((event.clientY - rect.top) / rect.height - .5) * -12}px`); }} onPointerLeave={(event) => { event.currentTarget.style.setProperty("--rx","0px"); event.currentTarget.style.setProperty("--ry","0px"); }}><img src={selectedRecipe.image} alt="" style={{transform:"translate3d(var(--rx,0px),var(--ry,0px),0) scale(1.04)",transition:"transform .35s cubic-bezier(.22,.8,.22,1)"}} /></motion.div>
             <span className="eyebrow"><Sparkles size={13} /> {selectedRecipe.match}% pantry match</span>
             <motion.h2 layoutId={`recipe-title-${selectedRecipe.id}`}>{selectedRecipe.title}</motion.h2><p>{selectedRecipe.reason}</p>
-            <div className="nutrition-strip"><span><b>{selectedRecipe.nutrition.calories}</b> kcal</span><span><b>{selectedRecipe.nutrition.protein}g</b> protein</span><span><b>{selectedRecipe.nutrition.carbs}g</b> carbs</span><span><b>{selectedRecipe.nutrition.fat}g</b> fat</span></div>
+            <div className="nutrition-strip"><span><b><AnimatedNumber value={selectedRecipe.nutrition.calories} /></b> kcal</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.protein} suffix="g" /></b> protein</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.carbs} suffix="g" /></b> carbs</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.fat} suffix="g" /></b> fat</span></div>
             <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
             {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
             <div className="steps"><strong>Method</strong>{selectedRecipe.steps.map((step, i) => <div key={step}><b>{i+1}</b><span>{step}</span></div>)}</div>
