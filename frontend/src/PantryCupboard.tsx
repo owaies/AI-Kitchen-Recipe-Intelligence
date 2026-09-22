@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { Edit3, PackageOpen, Plus, Search, Trash2, X } from "lucide-react";
 
@@ -99,7 +100,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
                 <div className="photo-ingredient-row">
                   {groupItems.map((item) => (
                     <button type="button" className={item.days <= 2 ? "photo-ingredient expiring" : "photo-ingredient"} key={item.id} onClick={() => setSelected(item)}>
-                      <span className="photo-ingredient-image"><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></span>
+                      <motion.span className="photo-ingredient-image" layout transition={{ type: "spring", stiffness: 320, damping: 28 }}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
                       <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days <= 2 ? "Use soon" : item.expiry}</em></span>
                     </button>
                   ))}
@@ -114,8 +115,8 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
       </div>
 
       {selected && (
-        <div className="ingredient-drawer-backdrop" onClick={() => setSelected(null)}>
-          <aside className="ingredient-drawer" onClick={(event) => event.stopPropagation()}>
+        <motion.div className="ingredient-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onClick={() => setSelected(null)}>
+          <motion.aside className="ingredient-drawer" initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring", stiffness: 280, damping: 28 }} onClick={(event) => event.stopPropagation()}>
             <button className="drawer-close" onClick={() => setSelected(null)} aria-label="Close"><X size={17} /></button>
             <div className="drawer-image"><img src={ingredientImage(selected.name)} alt={selected.name} /></div>
             <span className="eyebrow">{selected.category}</span>
@@ -126,8 +127,8 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
               <button className="primary" onClick={() => { setSelected(null); onEdit(selected); }}><Edit3 size={14} /> Edit</button>
               <button className="danger-button" onClick={() => { setSelected(null); onDelete(selected); }}><Trash2 size={14} /> Remove</button>
             </div>
-          </aside>
-        </div>
+          </motion.aside>
+        </motion.div>
       )}
     </section>
   );
