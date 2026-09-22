@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowRight, CalendarDays, Camera, Check, ChevronRight, Clock3, Leaf,
 Plus, Search, ShoppingBasket, Sparkles, Utensils, X,
@@ -107,6 +107,8 @@ const recipes = [
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
+  const { scrollY } = useScroll();
+  const storyY = useTransform(scrollY, [0, 700], [0, -38]);
   const [authLoading, setAuthLoading] = useState(Boolean(supabase));
   const [active, setActive] = useState("Overview");
   const [transitionScene, setTransitionScene] = useState<"kitchen" | "cupboards" | "recipes" | "meal-plan" | "shopping" | null>(null);
@@ -529,7 +531,7 @@ function App() {
                   </AnimatePresence>
                 </motion.div>
               )}
-            </section>
+            </motion.section>
           ) : (
             <> 
           <section className="hero">
