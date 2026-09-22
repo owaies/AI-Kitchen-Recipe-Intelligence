@@ -511,7 +511,7 @@ function App() {
                   </div>
                 </div>
                 <div className="recipe-actions"><button className="primary magnetic" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
-              </div>
+              </motion.div>
               {aiBusy && (
                 <motion.div className="ai-generation-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
                   <div className="ai-generation-orb"><Sparkles size={18} /></div>
