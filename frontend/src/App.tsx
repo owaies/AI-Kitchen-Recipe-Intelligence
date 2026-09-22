@@ -544,8 +544,8 @@ function App() {
             </div>
             <div className="hero-art">
               <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
-              <div className="food-circle">
-                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=85" alt="Fresh ingredients" />
+              <div className="food-circle" onPointerMove={(event) => { const rect=event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty("--mx", `${((event.clientX-rect.left)/rect.width-.5)*-8}px`); event.currentTarget.style.setProperty("--my", `${((event.clientY-rect.top)/rect.height-.5)*-8}px`); }} onPointerLeave={(event) => { event.currentTarget.style.setProperty("--mx","0px"); event.currentTarget.style.setProperty("--my","0px"); }}>
+                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=85" alt="Fresh ingredients" style={{transform:"translate3d(var(--mx,0px),var(--my,0px),0) scale(1.04)",transition:"transform .45s cubic-bezier(.22,.8,.22,1)"}} />
               </div>
               <div className="floating-note"><Sparkles size={14} /><span><strong>{pantry.filter((i) => i.days <= 2).length}</strong> ingredients<br />need using soon</span></div>
             </div>
