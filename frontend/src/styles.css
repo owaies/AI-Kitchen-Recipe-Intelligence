@@ -1243,3 +1243,5 @@ body.cook-mode-open{overflow:hidden}
 
 /* Soft photographic reveal */
 .smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img,.recipe-image img{animation:image-reveal .7s cubic-bezier(.22,.8,.22,1) both}@keyframes image-reveal{from{opacity:0;filter:blur(15px);transform:scale(1.03)}to{opacity:1;filter:blur(0);transform:scale(1)}}@media(prefers-reduced-motion:reduce){.smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img,.recipe-image img{animation:none}}
+
+.recipe-carousel{display:flex!important;overflow-x:auto;grid-template-columns:none!important;gap:18px;padding:4px 4px 18px;scrollbar-width:thin}.recipe-carousel .smart-recipe-card{flex:0 0 min(420px,82vw)}.recipe-carousel::-webkit-scrollbar{height:5px}.recipe-carousel::-webkit-scrollbar-thumb{background:#cdbfa9;border-radius:20px}

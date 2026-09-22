@@ -515,7 +515,7 @@ function App() {
               {recipeResults.length === 0 ? (
                 <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary magnetic" onClick={generateRecipes}>Generate recipes</button></div>
               ) : (
-                <motion.div className="smart-recipe-grid" layout>
+                <motion.div className="smart-recipe-grid recipe-carousel" layout drag="x" dragConstraints={{left:-700,right:0}} dragElastic={.08}>
                   <AnimatePresence mode="popLayout">
                   {recipeResults.map((recipe) => (
                     <motion.article className="smart-recipe-card" layout key={recipe.id} initial={{opacity:0,scale:.96,y:10}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:-8}} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
