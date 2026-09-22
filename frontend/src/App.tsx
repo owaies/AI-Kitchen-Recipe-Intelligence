@@ -544,7 +544,6 @@ function App() {
                   </AnimatePresence>
                 </motion.div>
               )}
-            </motion.div>
             </section>
           ) : (
             <> 
