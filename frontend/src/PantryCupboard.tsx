@@ -77,7 +77,7 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
         </div>
         <div className="cupboard-actions">
           <label className="cupboard-search"><Search size={15} /><input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Find an ingredient..." /></label>
-          <button className="primary" onClick={onAdd}><Plus size={15} /> Add ingredient</button>
+          <motion.button layoutId="add-ingredient-action" className="primary" onClick={onAdd}><Plus size={15} /> Add ingredient</motion.button>
         </div>
       </div>
 

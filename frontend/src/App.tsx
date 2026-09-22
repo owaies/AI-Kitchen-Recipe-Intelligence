@@ -611,7 +611,7 @@ function App() {
 
       {showAdd && (
         <motion.div className="modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.22 }} onMouseDown={() => setShowAdd(false)}>
-          <motion.div className="modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
+          <motion.div layoutId="add-ingredient-action" className="modal add-ingredient-modal" initial={{ opacity: 0, y: 24, scale: 0.97, filter: "blur(5px)" }} animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} transition={{ type: "spring", stiffness: 260, damping: 24 }} onMouseDown={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowAdd(false)}><X size={18} /></button>
             <span className="eyebrow"><Plus size={13} /> Pantry</span>
             <h2>Add an ingredient</h2>
