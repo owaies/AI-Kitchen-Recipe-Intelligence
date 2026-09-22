@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Edit3, PackageOpen, Plus, Search, Trash2, X } from "lucide-react";
 
@@ -102,12 +102,12 @@ export default function PantryCupboard({ items, query, onQueryChange, onAdd, onE
               <div className="photo-shelf" key={group}>
                 <div className="photo-shelf-label">{groupNames[group]}</div>
                 <div className="photo-ingredient-row">
-                  {groupItems.map((item) => (
+                  <AnimatePresence mode="popLayout">{groupItems.map((item) => (
                     <motion.button type="button" className={`photo-ingredient freshness-${freshnessFor(item)}`} whileHover={{y:-7,scale:1.015,rotate:item.id.charCodeAt(0)%2?-0.7:0.7}} whileTap={{scale:.985}} transition={{type:"spring",stiffness:360,damping:24}} style={{ borderColor: item.days < 0 ? "#c6a99e" : item.days <= 0 ? "#c94b3c88" : item.days <= 2 ? "#c94b3c55" : "#667a3e22", opacity: item.days < 0 ? .68 : 1 }} key={item.id} onClick={() => setSelected(item)}>
                       <motion.span className="photo-ingredient-image" layoutId={`ingredient-image-${item.id}`} layout transition={{ type: "spring", stiffness: 320, damping: 28 }}><img src={ingredientImage(item.name)} alt={item.name} loading="lazy" /></motion.span>
                       <span className="photo-ingredient-copy"><strong>{item.name}</strong><small>{item.amount}</small><em>{item.days < 0 ? "Expired" : item.days === 0 ? "Use today" : item.days <= 2 ? "Use soon" : item.expiry}</em></span>
                     </button>
-                  ))}
+                  ))}</AnimatePresence>
                   {!groupItems.length && category === "all" && <span className="photo-shelf-empty">Shelf waiting for ingredients</span>}
                 </div>
               </div>
