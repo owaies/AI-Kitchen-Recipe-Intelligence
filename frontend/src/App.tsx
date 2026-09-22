@@ -364,8 +364,8 @@ function App() {
         <div className="side-label">Your kitchen</div>
         <nav>
           {["Overview", "Pantry", "Recipes", "Meal plan", "Shopping list"].map((item) => (
-            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)}>
-              {active === item && <motion.span layoutId="active-nav-indicator" className="nav-active-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+            <button className={active === item ? "nav-item active" : "nav-item"} key={item} onClick={() => navigateTo(item)} style={{ position: "relative" }}>
+              {active === item && <motion.span layoutId="active-nav-indicator" className="nav-active-indicator" style={{ position: "absolute", left: 0, top: 8, bottom: 8, width: 3, borderRadius: 999, background: "var(--tomato)", boxShadow: "0 0 16px rgba(207, 70, 54, .28)" }} transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <span>{item}</span><ChevronRight size={15} />
             </button>
           ))}
@@ -433,17 +433,19 @@ function App() {
               {recipeResults.length === 0 ? (
                 <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary" onClick={generateRecipes}>Generate recipes</button></div>
               ) : (
-                <div className="smart-recipe-grid">
+                <motion.div className="smart-recipe-grid" layout>
+                  <AnimatePresence mode="popLayout">
                   {recipeResults.map((recipe) => (
-                    <article className="smart-recipe-card" key={recipe.id} onClick={() => setSelectedRecipe(recipe)}>
+                    <motion.article className="smart-recipe-card" layout key={recipe.id} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
                       <div className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></div>
                       <div className="smart-recipe-content"><h3>{recipe.title}</h3><p>{recipe.reason}</p>
                       <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
                       <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
                       <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
-                    </article>
+                    </motion.article>
                   ))}
-                </div>
+                  </AnimatePresence>
+                </motion.div>
               )}
             </section>
           ) : (
