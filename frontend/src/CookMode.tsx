@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Clock3, X } from "lucide-react";
 import type { SmartRecipe } from "./services/recipeIntelligence";
 
@@ -29,16 +30,9 @@ export default function CookMode({ recipe, onClose }: Props) {
       <div className="cook-panel">
         <div className="cook-progress">
           <div><span>STEP {step + 1} OF {total || 1}</span><strong>{Math.round(progress)}%</strong></div>
-          <i><b style={{ width: progress + "%" }} /></i>
+          <i><motion.b initial={false} animate={{width:progress+"%"}} transition={{type:"spring",stiffness:120,damping:22}} /></i>
         </div>
-        <div className="cook-step">
-          <span className="cook-step-number">{String(step + 1).padStart(2, "0")}</span>
-          <div>
-            <span className="eyebrow">Method</span>
-            <h2>{recipe.steps[step] ?? "Your recipe is ready."}</h2>
-            <p>Take your time and check the texture before moving to the next step.</p>
-          </div>
-        </div>
+        <AnimatePresence mode="wait" initial={false}><motion.div key={step} className="cook-step" initial={{opacity:0,x:24,filter:"blur(5px)"}} animate={{opacity:1,x:0,filter:"blur(0)"}} exit={{opacity:0,x:-24,filter:"blur(5px)"}} transition={{duration:.32,ease:[.22,.8,.22,1]}}><span className="cook-step-number">{String(step + 1).padStart(2, "0")}</span><div><span className="eyebrow">Method</span><h2>{recipe.steps[step] ?? "Your recipe is ready."}</h2><p>Take your time and check the texture before moving to the next step.</p></div></motion.div></AnimatePresence>
         <div className="cook-ingredients">
           <span>USING FROM PANTRY</span>
           <div>{recipe.used.slice(0, 5).map((item) => <span key={item}><Check size={12} /> {item}</span>)}</div>
