@@ -171,6 +171,23 @@ function App() {
       .catch((error) => console.error("Pantry load failed", error));
   }, [session]);
 
+  useEffect(() => {
+    const buttons = Array.from(document.querySelectorAll<HTMLElement>(".magnetic"));
+    const handlers = buttons.map((button) => {
+      const move = (event: PointerEvent) => {
+        const rect = button.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width - .5) * 7;
+        const y = ((event.clientY - rect.top) / rect.height - .5) * 7;
+        button.style.transform = `translate3d(${x}px,${y}px,0)`;
+      };
+      const leave = () => { button.style.transform = ""; };
+      button.addEventListener("pointermove", move);
+      button.addEventListener("pointerleave", leave);
+      return () => { button.removeEventListener("pointermove", move); button.removeEventListener("pointerleave", leave); };
+    });
+    return () => handlers.forEach((cleanup) => cleanup());
+  }, [active]);
+
   const navigateTo = (page: string) => {
     if (page === active || transitionScene) return;
 
@@ -453,7 +470,7 @@ function App() {
                     <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div>
                   </div>
                 </div>
-                <div className="recipe-actions"><button className="primary" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
+                <div className="recipe-actions"><button className="primary magnetic" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
               </div>
               {aiBusy && (
                 <motion.div className="ai-generation-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}>
@@ -471,7 +488,7 @@ function App() {
               )}
               {aiMessage && <div className="pantry-error">{aiMessage}</div>}
               {recipeResults.length === 0 ? (
-                <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary" onClick={generateRecipes}>Generate recipes</button></div>
+                <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary magnetic" onClick={generateRecipes}>Generate recipes</button></div>
               ) : (
                 <motion.div className="smart-recipe-grid" layout>
                   <AnimatePresence mode="popLayout">
