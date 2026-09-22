@@ -498,7 +498,7 @@ function App() {
             <MealPlanner />
           ) : active === "Recipes" ? (
             <section className="recipes-page">
-              <div className="recipe-intelligence-hero">
+              <motion.div className="recipe-intelligence-hero" style={{ y: storyY }}>
                 <div>
                   <span className="eyebrow"><Sparkles size={13} /> Pantry intelligence</span>
                   <h2>What can you cook<br /><em>right now?</em></h2>
@@ -544,7 +544,7 @@ function App() {
                   </AnimatePresence>
                 </motion.div>
               )}
-            </motion.section>
+            </motion.div>
           ) : (
             <> 
           <section className="hero">
