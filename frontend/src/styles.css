@@ -1260,3 +1260,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete recipe shared-image transitions */
 .recipe-detail-modal .recipe-detail-image{overflow:hidden;transform-origin:center}.recipe-detail-modal .recipe-detail-image img{will-change:transform}.smart-recipe-card .smart-recipe-photo{isolation:isolate}.smart-recipe-card .smart-recipe-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 58%,rgba(25,16,11,.2));pointer-events:none}
+
+/* feat(ux): add recipe image parallax depth */
+.recipe-detail-image{transform-style:preserve-3d}.recipe-detail-image:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 38%,rgba(25,16,11,.12));pointer-events:none}.smart-recipe-photo{overflow:hidden;position:relative}.smart-recipe-card:hover .smart-recipe-photo img{transform:scale(1.075) translateY(-3px)!important}
