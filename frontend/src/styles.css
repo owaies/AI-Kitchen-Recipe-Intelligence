@@ -1305,3 +1305,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): expand skeleton loading states */
 .kitchen-skeleton{position:relative;overflow:hidden}.kitchen-skeleton:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:skeleton-sweep 1.35s linear infinite}@keyframes skeleton-sweep{to{transform:translateX(100%)}}
+
+/* feat(ux): complete animated empty states */
+.recipe-empty,.shopping-empty,.cupboard-empty{border:1px dashed #d8cbb7;background:radial-gradient(circle at 50% 20%,rgba(232,199,102,.1),transparent 42%),#fbf7ee;border-radius:18px;padding:42px 24px}.recipe-empty p,.shopping-empty span,.cupboard-empty span{max-width:460px}
