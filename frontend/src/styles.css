@@ -1326,3 +1326,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): finish scroll-linked recipe storytelling */
 .recipe-intelligence-hero{will-change:transform}.recipes-page{perspective:1000px}.recipe-intelligence-hero h2{animation:story-title-in .8s cubic-bezier(.22,.8,.22,1) both}@keyframes story-title-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* feat(ux): finish ingredient-to-recipe connection */
+.ingredient-drawer .drawer-actions .primary{position:relative;overflow:hidden}.ingredient-drawer .drawer-actions .primary:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-120%);transition:transform .5s ease}.ingredient-drawer .drawer-actions .primary:hover:after{transform:translateX(120%)}
