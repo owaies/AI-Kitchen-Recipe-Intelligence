@@ -1335,3 +1335,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete staged AI detection loading sequence */
 .photo-review.is-scanning .photo-preview-frame{box-shadow:0 0 0 1px rgba(201,75,60,.3),0 0 40px rgba(201,75,60,.12)}.vision-scan-line{height:2px;background:linear-gradient(90deg,transparent,var(--butter),#fff,transparent);box-shadow:0 0 18px rgba(232,199,102,.8)}.vision-stages span{position:relative;padding-left:2px}.vision-stages span.done{transform:translateX(2px)}.vision-stages span:not(.done) i{animation:vision-step-pulse 1.1s ease-in-out infinite}@keyframes vision-step-pulse{50%{box-shadow:0 0 0 4px rgba(201,75,60,.08)}}
+
+/* feat(ux): complete AI detection result reveal */
+.quick-ingredients{display:flex;flex-wrap:wrap;gap:7px}.quick-ingredients button{animation:detected-chip-in .45s cubic-bezier(.22,.8,.22,1) both}.quick-ingredients button:nth-child(2){animation-delay:.05s}.quick-ingredients button:nth-child(3){animation-delay:.1s}.quick-ingredients button:nth-child(4){animation-delay:.15s}.quick-ingredients button small{transition:transform .25s ease}.quick-ingredients button:hover small{transform:translateY(-1px)}@keyframes detected-chip-in{from{opacity:0;transform:translateY(12px) scale(.9);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
