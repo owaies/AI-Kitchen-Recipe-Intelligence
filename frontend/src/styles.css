@@ -1293,3 +1293,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete cooking-mode slide polish */
 .cook-step{touch-action:pan-y}.cook-controls .primary{box-shadow:0 10px 22px rgba(201,75,60,.14)}.cook-controls .primary:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(201,75,60,.2)}
+
+/* feat(ux): add nutrition count-up presentation */
+.nutrition-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#ded2c0;border-radius:12px;overflow:hidden}.nutrition-strip>span{background:#fbf7ee;padding:12px 10px;text-align:center;color:#887e72;font:9px "DM Mono";text-transform:uppercase}.nutrition-strip b{display:block;font:500 22px "Playfair Display";color:var(--espresso);margin-bottom:3px}
