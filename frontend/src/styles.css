@@ -1332,3 +1332,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete add-ingredient modal transformation */
 .add-ingredient-modal{transform-origin:var(--modal-origin-x,50%) var(--modal-origin-y,100%);overflow:hidden}.add-ingredient-modal:before{content:"";position:absolute;width:180px;height:180px;right:-90px;top:-90px;border-radius:50%;background:rgba(232,199,102,.12);pointer-events:none}.add-ingredient-modal .photo-option{transition:transform .28s ease,background .28s ease,box-shadow .28s ease}.add-ingredient-modal .photo-option:hover{transform:translateY(-2px);background:#eee4d1;box-shadow:0 12px 26px rgba(46,36,29,.08)}
+
+/* feat(ux): complete staged AI detection loading sequence */
+.photo-review.is-scanning .photo-preview-frame{box-shadow:0 0 0 1px rgba(201,75,60,.3),0 0 40px rgba(201,75,60,.12)}.vision-scan-line{height:2px;background:linear-gradient(90deg,transparent,var(--butter),#fff,transparent);box-shadow:0 0 18px rgba(232,199,102,.8)}.vision-stages span{position:relative;padding-left:2px}.vision-stages span.done{transform:translateX(2px)}.vision-stages span:not(.done) i{animation:vision-step-pulse 1.1s ease-in-out infinite}@keyframes vision-step-pulse{50%{box-shadow:0 0 0 4px rgba(201,75,60,.08)}}
