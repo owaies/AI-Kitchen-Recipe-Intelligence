@@ -1299,3 +1299,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): animate dashboard statistics */
 .stats div{position:relative;overflow:hidden}.stats div:after{content:"";position:absolute;left:0;bottom:0;height:2px;width:100%;background:linear-gradient(90deg,var(--tomato),var(--butter),transparent);transform:scaleX(0);transform-origin:left;transition:transform .7s ease}.stats div:hover:after{transform:scaleX(1)}.stats strong{transition:transform .35s ease,color .35s ease}.stats div:hover strong{transform:translateY(-2px);color:var(--tomato)}
+
+/* feat(ux): complete toast notification styling */
+.toast-notification{position:relative;overflow:hidden}.toast-notification:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent 35%);pointer-events:none}
