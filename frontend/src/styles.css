@@ -1338,3 +1338,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete AI detection result reveal */
 .quick-ingredients{display:flex;flex-wrap:wrap;gap:7px}.quick-ingredients button{animation:detected-chip-in .45s cubic-bezier(.22,.8,.22,1) both}.quick-ingredients button:nth-child(2){animation-delay:.05s}.quick-ingredients button:nth-child(3){animation-delay:.1s}.quick-ingredients button:nth-child(4){animation-delay:.15s}.quick-ingredients button small{transition:transform .25s ease}.quick-ingredients button:hover small{transform:translateY(-1px)}@keyframes detected-chip-in{from{opacity:0;transform:translateY(12px) scale(.9);filter:blur(5px)}to{opacity:1;transform:none;filter:blur(0)}}
+
+/* feat(ux): complete pantry-to-recipes transition */
+.ingredientBridge{will-change:transform,opacity}.image-transition.shopping .transition-copy,.image-transition.recipes .transition-copy{animation-duration:.85s}.image-transition.recipes .transition-food-image{transform-origin:center}.image-transition.recipes{background:#1c120d}.image-transition.recipes .transition-image-wash{background:linear-gradient(90deg,rgba(25,15,10,.82),rgba(25,15,10,.35) 48%,rgba(25,15,10,.16)),linear-gradient(180deg,rgba(15,10,7,.22),transparent 45%,rgba(15,10,7,.58))}
