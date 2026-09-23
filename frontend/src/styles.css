@@ -1272,3 +1272,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): strengthen expiry-date visual hierarchy */
 .photo-ingredient.freshness-expired{filter:saturate(.68)}.photo-ingredient.freshness-expired .photo-ingredient-copy em{color:#9a4035;font-weight:700}.photo-ingredient.freshness-today{box-shadow:0 0 0 1px rgba(201,75,60,.35),0 13px 30px rgba(201,75,60,.14)}.photo-ingredient.freshness-soon .photo-ingredient-copy em{color:#b25b3e;font-weight:600}.ingredient-card.urgent small{font-weight:700}.urgent-text{color:var(--tomato)!important}
+
+/* feat(ux): complete cooking progress animation */
+.cook-progress>i{position:relative;border-radius:999px}.cook-progress>i b{position:relative;border-radius:999px;box-shadow:0 0 12px rgba(201,75,60,.25)}.cook-progress>i b:after{content:"";position:absolute;right:0;top:50%;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--tomato),0 0 12px rgba(201,75,60,.45);transform:translate(50%,-50%)}.cook-step-number{transition:color .3s ease,transform .35s ease}
