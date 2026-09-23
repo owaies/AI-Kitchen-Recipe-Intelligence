@@ -1287,3 +1287,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): add shopping check-off celebration */
 .shopping-row.purchased{background:linear-gradient(90deg,#f0eadb,#fbf7ee);transition:background .35s ease,opacity .35s ease}.shopping-row.purchased strong{text-decoration:line-through;text-decoration-color:#9b8d7c}.shopping-row.purchased .shopping-check{box-shadow:0 0 0 5px rgba(102,122,62,.09)}.shopping-check{transition:box-shadow .3s ease,transform .2s ease}
+
+/* feat(ux): polish meal-plan drag and drop */
+.meal-slot{transition:background .25s ease,border-color .25s ease,transform .25s ease}.planned-meal{cursor:grab;will-change:transform,box-shadow}.planned-meal:active{cursor:grabbing}.meal-slot:not(:has(.planned-meal)):hover{background:rgba(232,199,102,.08);border-color:#d3c09d}
