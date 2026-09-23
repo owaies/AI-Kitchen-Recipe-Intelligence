@@ -1311,3 +1311,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete cursor-aware image movement */
 .food-circle,.recipe-detail-image,.smart-recipe-photo{--mx:0px;--my:0px}.food-circle img,.recipe-detail-image img{will-change:transform}.food-circle:after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);pointer-events:none}
+
+/* feat(ux): complete soft image reveal */
+.recipe-image,.smart-recipe-photo,.recipe-detail-image,.photo-ingredient-image{background:#e9dfcf;overflow:hidden}.recipe-image img,.smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img{backface-visibility:hidden}
