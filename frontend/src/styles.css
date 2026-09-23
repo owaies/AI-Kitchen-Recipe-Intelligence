@@ -1266,3 +1266,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): animate recipe filtering */
 .smart-recipe-grid{contain:layout paint}.smart-recipe-card{will-change:transform,opacity}.smart-recipe-grid:has(.smart-recipe-card){transition:min-height .35s ease}.recipe-controls,.ai-controls{transition:opacity .25s ease,transform .25s ease}.recipe-controls:focus-within,.ai-controls:focus-within{transform:translateY(-1px)}
+
+/* feat(ux): complete animated pantry search */
+.cupboard-search{transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}.cupboard-search:focus-within{transform:translateY(-1px);box-shadow:0 12px 30px rgba(46,36,29,.1);border-color:#c7b79e}.photo-ingredient-row{transition:opacity .2s ease}.photo-ingredient{animation:search-card-enter .36s cubic-bezier(.22,.8,.22,1) both}@keyframes search-card-enter{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:none}}
