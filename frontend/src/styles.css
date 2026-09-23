@@ -1323,3 +1323,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): finish page-level entrance choreography */
 .page-motion-shell>.recipes-page .smart-recipe-card{animation:recipe-stagger .5s cubic-bezier(.22,.8,.22,1) both}.page-motion-shell>.recipes-page .smart-recipe-card:nth-child(2){animation-delay:.05s}.page-motion-shell>.recipes-page .smart-recipe-card:nth-child(3){animation-delay:.1s}@keyframes recipe-stagger{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* feat(ux): finish scroll-linked recipe storytelling */
+.recipe-intelligence-hero{will-change:transform}.recipes-page{perspective:1000px}.recipe-intelligence-hero h2{animation:story-title-in .8s cubic-bezier(.22,.8,.22,1) both}@keyframes story-title-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
