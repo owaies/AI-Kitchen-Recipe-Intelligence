@@ -579,11 +579,11 @@ function App() {
             </div>
           </section>
 
-          <section className="stats">
-            <div><span>Pantry</span><strong>{pantry.length}</strong><small>ingredients</small></div>
-            <div><span>Expiring soon</span><strong>{pantry.filter((i) => i.days <= 2).length}</strong><small>within 48 hours</small></div>
-            <div><span>Saved recipes</span><strong>{saved.length}</strong><small>in your collection</small></div>
-            <div><span>Shopping</span><strong>7</strong><small>items to pick up</small></div>
+          <section className="stats" aria-label="Kitchen statistics">
+            <div><span>Pantry</span><strong><AnimatedNumber value={pantry.length} /></strong><small>ingredients</small></div>
+            <div><span>Expiring soon</span><strong><AnimatedNumber value={pantry.filter((i) => i.days <= 2).length} /></strong><small>within 48 hours</small></div>
+            <div><span>Saved recipes</span><strong><AnimatedNumber value={saved.length} /></strong><small>in your collection</small></div>
+            <div><span>Shopping</span><strong><AnimatedNumber value={7} /></strong><small>items to pick up</small></div>
           </section>
 
           <section className="section-head">
