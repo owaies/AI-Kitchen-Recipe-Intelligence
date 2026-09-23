@@ -4,7 +4,7 @@ AI-powered kitchen companion for turning ingredients into practical cooking deci
 
 ## Current AI architecture
 
-- Recipe intelligence: OpenRouter → `nvidia/nemotron-3.5-lightning:free`
+- Recipe intelligence: OpenRouter → primary `nvidia/nemotron-3.5-lightning:free` with a 10-model generation fallback chain
 - Photo ingredient detection: YOLO11
 - Backend: Python + FastAPI
 - Frontend: React + TypeScript + Vite
@@ -21,7 +21,7 @@ AI Kitchen & Recipe Intelligence combines pantry management, ingredient recognit
 - Pantry inventory with quantities, units, categories, and expiry dates
 - Ingredient entry by text and photo
 - YOLO-based photo ingredient detection workflow with confidence-aware results
-- Nemotron recipe generation from pantry ingredients
+- OpenRouter recipe generation from pantry ingredients with automatic 10-model failover
 - Deterministic pantry recipe fallback
 - Weekly meal planning
 - Shopping-list workflow
@@ -33,7 +33,7 @@ AI Kitchen & Recipe Intelligence combines pantry management, ingredient recognit
 
 Photo → YOLO → ingredient candidates → user confirmation → Supabase Pantry
 
-Pantry → OpenRouter → Nemotron → structured recipe → recipe workspace
+Pantry → OpenRouter primary → fallback model chain → structured recipe → recipe workspace
 
 ## Important computer-vision limitation
 
@@ -47,6 +47,8 @@ Backend: copy `backend/.env.example` to `backend/.env`.
 
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=nvidia/nemotron-3.5-lightning:free
+OPENROUTER_FALLBACK_MODELS=thinking-machines/inkling-small:free,poolside/laguna-s-2.1:free,thinking-machines/inkling:free,poolside/laguna-xs-2.1:free,cohere/north-mini-code:free,z-ai/glm-5.2:free,nvidia/nemotron-3-ultra:free,nvidia/nemotron-3-nano-omni:free,google/gemma-4-26b-a4b:free,google/gemma-4-31b-it:free
+OPENROUTER_RETRIES_PER_MODEL=1
 OPENROUTER_SITE_URL=
 YOLO_MODEL_PATH=yolo11n.pt
 YOLO_CONFIDENCE=0.35
@@ -61,3 +63,25 @@ Modern Culinary Magazine: cream, tomato red, olive green, espresso, butter yello
 ## Status
 
 The project is actively under development. Deployment and test results are documented only after verification.
+
+
+## OpenRouter fallback chain
+
+The recipe generator now tries the primary model first, then up to 10 generation-capable free models in the fallback list. Embedding, reranking, safety-only, and audio models are intentionally excluded because they cannot produce the structured recipe required by this application.
+
+Fallback order used from the uploaded OpenRouter Newest/Free model list:
+
+1. `thinking-machines/inkling-small:free`
+2. `poolside/laguna-s-2.1:free`
+3. `thinking-machines/inkling:free`
+4. `poolside/laguna-xs-2.1:free`
+5. `cohere/north-mini-code:free`
+6. `z-ai/glm-5.2:free`
+7. `nvidia/nemotron-3-ultra:free`
+8. `nvidia/nemotron-3-nano-omni:free`
+9. `google/gemma-4-26b-a4b:free`
+10. `google/gemma-4-31b-it:free`
+
+The backend falls through the chain when a model is unavailable, rate-limited, returns an invalid structured response, or encounters a transient network failure. Streaming generation also resets cleanly between fallback attempts so partial output from a failed model is not treated as the final recipe.
+
+The exact model list is configurable with `OPENROUTER_FALLBACK_MODELS`, so the chain can be updated without changing application code.
