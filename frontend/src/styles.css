@@ -1263,3 +1263,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): add recipe image parallax depth */
 .recipe-detail-image{transform-style:preserve-3d}.recipe-detail-image:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 38%,rgba(25,16,11,.12));pointer-events:none}.smart-recipe-photo{overflow:hidden;position:relative}.smart-recipe-card:hover .smart-recipe-photo img{transform:scale(1.075) translateY(-3px)!important}
+
+/* feat(ux): animate recipe filtering */
+.smart-recipe-grid{contain:layout paint}.smart-recipe-card{will-change:transform,opacity}.smart-recipe-grid:has(.smart-recipe-card){transition:min-height .35s ease}.recipe-controls,.ai-controls{transition:opacity .25s ease,transform .25s ease}.recipe-controls:focus-within,.ai-controls:focus-within{transform:translateY(-1px)}
