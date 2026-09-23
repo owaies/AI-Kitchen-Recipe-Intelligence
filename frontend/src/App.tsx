@@ -381,7 +381,7 @@ function App() {
     try {
       const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
       const recipe = await streamAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine, (update) => {
-        if (update.type === "start") setAiStage("Nemotron is thinking");
+        if (update.type === "start") setAiStage(update.fallback ? `Fallback model ${update.attempt ?? ""} is thinking` : `${update.model} is thinking`);
         if (update.type === "delta") {
           setAiStage("Building your recipe");
           setAiStreamChars((count) => count + update.content.length);
@@ -389,6 +389,10 @@ function App() {
         if (update.type === "complete") {
           setAiStage("Recipe assembled");
           setAiReasoningTokens(update.reasoningTokens ?? null);
+        }
+        if (update.type === "fallback") {
+          setAiStage(update.message);
+          setAiStreamChars(0);
         }
         if (update.type === "error") setAiStage("AI service unavailable");
       });
@@ -412,12 +416,12 @@ function App() {
         setRecipeResults(fallback);
         setAiMessage(
           normalized.includes("quota") || normalized.includes("429")
-            ? "Nemotron is currently unavailable because its API quota is exhausted. Showing pantry-engine recipes instead."
-            : "Nemotron is temporarily unavailable. Showing pantry-engine recipes instead.",
+            ? "OpenRouter models are currently rate-limited. Showing pantry-engine recipes instead. Showing pantry-engine recipes instead."
+            : "OpenRouter fallback models are temporarily unavailable. Showing pantry-engine recipes instead. Showing pantry-engine recipes instead.",
         );
         setAiStage("Using pantry engine");
       } else {
-        setAiMessage("Nemotron could not generate a recipe right now. Please try again later.");
+        setAiMessage("OpenRouter could not generate a recipe right now. Please try again later.");
         setAiStage("Generation stopped");
       }
     } finally {
