@@ -1278,3 +1278,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): deepen page entrance choreography */
 .page-motion-shell{will-change:opacity}.page-motion-shell>.hero{animation-duration:.68s}.page-motion-shell>.kitchen-intelligence{animation-delay:.1s}.page-motion-shell>.stats{animation-delay:.16s}.page-motion-shell>.section-head{animation-delay:.22s}
+
+/* feat(ux): enhance Nemotron thinking orb */
+.ai-generation-panel{position:relative;overflow:hidden}.ai-generation-panel:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(232,199,102,.08),transparent);transform:translateX(-100%);animation:ai-sweep 2.4s ease-in-out infinite}.ai-generation-orb svg{animation:ai-sparkle 1.5s ease-in-out infinite}@keyframes ai-sweep{to{transform:translateX(100%)}}@keyframes ai-sparkle{0%,100%{transform:rotate(0) scale(.96)}50%{transform:rotate(8deg) scale(1.08)}}
