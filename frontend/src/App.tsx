@@ -416,7 +416,7 @@ function App() {
         setRecipeResults(fallback);
         setAiMessage(
           normalized.includes("quota") || normalized.includes("429")
-            ? "OpenRouter models are currently rate-limited. Showing pantry-engine recipes instead. Showing pantry-engine recipes instead."
+            ? "OpenRouter models are currently rate-limited. Showing pantry-engine recipes instead."
             : "OpenRouter fallback models are temporarily unavailable. Showing pantry-engine recipes instead. Showing pantry-engine recipes instead.",
         );
         setAiStage("Using pantry engine");
