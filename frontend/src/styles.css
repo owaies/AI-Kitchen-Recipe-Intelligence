@@ -1317,3 +1317,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): finish horizontal recipe carousel */
 .recipe-carousel{scroll-snap-type:x proximity;overscroll-behavior-x:contain}.recipe-carousel .smart-recipe-card{scroll-snap-align:start}.recipe-carousel:after{content:"";flex:0 0 4px}
+
+/* feat(ux): finish animated navigation indicator */
+.nav-item{position:relative;overflow:hidden}.nav-item:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:1px;background:var(--tomato);transform:scaleX(0);transform-origin:left;transition:transform .28s ease}.nav-item.active:after{transform:scaleX(1)}
