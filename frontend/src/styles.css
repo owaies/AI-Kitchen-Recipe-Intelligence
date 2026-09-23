@@ -1290,3 +1290,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): polish meal-plan drag and drop */
 .meal-slot{transition:background .25s ease,border-color .25s ease,transform .25s ease}.planned-meal{cursor:grab;will-change:transform,box-shadow}.planned-meal:active{cursor:grabbing}.meal-slot:not(:has(.planned-meal)):hover{background:rgba(232,199,102,.08);border-color:#d3c09d}
+
+/* feat(ux): complete cooking-mode slide polish */
+.cook-step{touch-action:pan-y}.cook-controls .primary{box-shadow:0 10px 22px rgba(201,75,60,.14)}.cook-controls .primary:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(201,75,60,.2)}
