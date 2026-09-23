@@ -1275,3 +1275,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete cooking progress animation */
 .cook-progress>i{position:relative;border-radius:999px}.cook-progress>i b{position:relative;border-radius:999px;box-shadow:0 0 12px rgba(201,75,60,.25)}.cook-progress>i b:after{content:"";position:absolute;right:0;top:50%;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--tomato),0 0 12px rgba(201,75,60,.45);transform:translate(50%,-50%)}.cook-step-number{transition:color .3s ease,transform .35s ease}
+
+/* feat(ux): deepen page entrance choreography */
+.page-motion-shell{will-change:opacity}.page-motion-shell>.hero{animation-duration:.68s}.page-motion-shell>.kitchen-intelligence{animation-delay:.1s}.page-motion-shell>.stats{animation-delay:.16s}.page-motion-shell>.section-head{animation-delay:.22s}
