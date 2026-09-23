@@ -1284,3 +1284,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): add shared-image transition continuity */
 .image-transition{transform-origin:center}.image-transition .transition-image-wrap{will-change:transform}.image-transition.recipes .transition-food-image{animation-duration:1.65s}.image-transition.cupboards .transition-food-image{animation-duration:1.5s}
+
+/* feat(ux): add shopping check-off celebration */
+.shopping-row.purchased{background:linear-gradient(90deg,#f0eadb,#fbf7ee);transition:background .35s ease,opacity .35s ease}.shopping-row.purchased strong{text-decoration:line-through;text-decoration-color:#9b8d7c}.shopping-row.purchased .shopping-check{box-shadow:0 0 0 5px rgba(102,122,62,.09)}.shopping-check{transition:box-shadow .3s ease,transform .2s ease}
