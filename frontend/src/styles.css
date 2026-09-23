@@ -1302,3 +1302,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete toast notification styling */
 .toast-notification{position:relative;overflow:hidden}.toast-notification:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent 35%);pointer-events:none}
+
+/* feat(ux): expand skeleton loading states */
+.kitchen-skeleton{position:relative;overflow:hidden}.kitchen-skeleton:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:skeleton-sweep 1.35s linear infinite}@keyframes skeleton-sweep{to{transform:translateX(100%)}}
