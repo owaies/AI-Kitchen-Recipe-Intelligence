@@ -1314,3 +1314,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete soft image reveal */
 .recipe-image,.smart-recipe-photo,.recipe-detail-image,.photo-ingredient-image{background:#e9dfcf;overflow:hidden}.recipe-image img,.smart-recipe-photo img,.recipe-detail-image img,.photo-ingredient-image img{backface-visibility:hidden}
+
+/* feat(ux): finish horizontal recipe carousel */
+.recipe-carousel{scroll-snap-type:x proximity;overscroll-behavior-x:contain}.recipe-carousel .smart-recipe-card{scroll-snap-align:start}.recipe-carousel:after{content:"";flex:0 0 4px}
