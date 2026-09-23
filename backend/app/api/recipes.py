@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.app.services.openrouter import OpenRouterError, generate_recipe, stream_recipe
+from backend.app.services.openrouter import OpenRouterError, generate_recipe_with_model, stream_recipe
 from backend.app.services.vision import VisionError, detect_ingredients
 
 router = APIRouter(prefix="/api/recipes", tags=["recipes"])
@@ -112,7 +112,7 @@ Rules:
 """.strip()
 
     try:
-        recipe = await generate_recipe(prompt)
-        return {"provider": "OpenRouter", "recipe": recipe}
+        recipe, model = await generate_recipe_with_model(prompt)
+        return {"provider": "OpenRouter", "model": model, "recipe": recipe}
     except OpenRouterError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
