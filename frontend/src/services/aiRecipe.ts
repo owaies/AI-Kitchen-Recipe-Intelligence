@@ -71,9 +71,10 @@ export async function generateAIRecipe(pantry: PantryRow[], goal = "balanced din
 
 
 export type AIStreamUpdate =
-  | { type: "start"; model: string }
+  | { type: "start"; model: string; fallback?: boolean; attempt?: number }
   | { type: "delta"; content: string }
-  | { type: "complete"; recipe: SmartRecipe; reasoningTokens?: number | null }
+  | { type: "complete"; recipe: SmartRecipe; model?: string; reasoningTokens?: number | null }
+  | { type: "fallback"; message: string }
   | { type: "error"; message: string };
 
 function normalizeAIRecipe(recipe: AIResponse["recipe"]): SmartRecipe {
@@ -149,18 +150,28 @@ export async function streamAIRecipe(
           message?: string;
           recipe?: AIResponse["recipe"];
           usage?: { reasoning_tokens?: number | null };
+          fallback?: boolean;
+          attempt?: number;
         };
         if (update.type === "complete" && update.recipe) {
           finalRecipe = normalizeAIRecipe(update.recipe);
           onUpdate?.({
             type: "complete",
             recipe: finalRecipe,
+            model: update.model,
             reasoningTokens: update.usage?.reasoning_tokens,
           });
         } else if (update.type === "start") {
-          onUpdate?.({ type: "start", model: update.model ?? "OpenRouter" });
+          onUpdate?.({
+            type: "start",
+            model: update.model ?? "OpenRouter",
+            fallback: update.fallback,
+            attempt: update.attempt,
+          });
         } else if (update.type === "delta" && update.content) {
           onUpdate?.({ type: "delta", content: update.content });
+        } else if (update.type === "fallback") {
+          onUpdate?.({ type: "fallback", message: update.message ?? "Trying the next AI model." });
         } else if (update.type === "error") {
           onUpdate?.({ type: "error", message: update.message ?? "AI generation failed." });
         }
@@ -183,6 +194,6 @@ export async function streamAIRecipe(
     frames.forEach(consume);
   }
 
-  if (!finalRecipe) throw new Error("Nemotron ended without a complete recipe.");
+  if (!finalRecipe) throw new Error("OpenRouter fallback chain ended without a complete recipe.");
   return finalRecipe;
 }
