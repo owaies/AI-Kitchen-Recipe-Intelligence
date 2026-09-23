@@ -1281,3 +1281,6 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): enhance Nemotron thinking orb */
 .ai-generation-panel{position:relative;overflow:hidden}.ai-generation-panel:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(232,199,102,.08),transparent);transform:translateX(-100%);animation:ai-sweep 2.4s ease-in-out infinite}.ai-generation-orb svg{animation:ai-sparkle 1.5s ease-in-out infinite}@keyframes ai-sweep{to{transform:translateX(100%)}}@keyframes ai-sparkle{0%,100%{transform:rotate(0) scale(.96)}50%{transform:rotate(8deg) scale(1.08)}}
+
+/* feat(ux): add shared-image transition continuity */
+.image-transition{transform-origin:center}.image-transition .transition-image-wrap{will-change:transform}.image-transition.recipes .transition-food-image{animation-duration:1.65s}.image-transition.cupboards .transition-food-image{animation-duration:1.5s}
