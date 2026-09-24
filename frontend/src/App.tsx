@@ -368,7 +368,7 @@ function App() {
   };
 
   const generateRecipes = async () => {
-    const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+    const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: item.days < 999 ? new Date(Date.now() + item.days * 86400000).toISOString().slice(0, 10) : null }));
     setRecipeResults(generateRecipeIntelligence(rows, aiCuisine));
     setAiMessage("");
     setActive("Recipes");
@@ -381,7 +381,7 @@ function App() {
     setAiStreamChars(0);
     setAiReasoningTokens(null);
     try {
-      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: item.days < 999 ? new Date(Date.now() + item.days * 86400000).toISOString().slice(0, 10) : null }));
       const recipe = await streamAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine, prioritizeExpiring, (update) => {
         if (update.type === "start") setAiStage(update.fallback ? `Fallback model ${update.attempt ?? ""} is thinking` : `${update.model} is thinking`);
         if (update.type === "delta") {
@@ -412,7 +412,7 @@ function App() {
         normalized.includes("temporarily") ||
         normalized.includes("503");
 
-      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: item.days < 999 ? new Date(Date.now() + item.days * 86400000).toISOString().slice(0, 10) : null }));
       const fallback = generateRecipeIntelligence(rows);
       setRecipeResults(fallback);
       setAiMessage(
