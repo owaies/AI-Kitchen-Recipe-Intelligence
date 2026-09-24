@@ -12,6 +12,7 @@ class PantryIngredient(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     quantity: float | None = None
     unit: str | None = None
+    expires_on: str | None = None
 
 
 class RecipeRequest(BaseModel):
@@ -20,6 +21,7 @@ class RecipeRequest(BaseModel):
     max_time_minutes: int = Field(default=45, ge=5, le=240)
     dietary_preferences: list[str] = Field(default_factory=list, max_length=10)
     cuisine: str = Field(default="Any cuisine", max_length=60)
+    prioritize_expiring: bool = True
 
 
 class VisionRequest(BaseModel):
@@ -40,11 +42,12 @@ async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
 @router.post("/generate/stream")
 async def stream_recipe_endpoint(request: RecipeRequest) -> StreamingResponse:
     pantry_text = ", ".join(
-        f"{item.name} ({item.quantity:g} {item.unit})" if item.quantity is not None and item.unit
-        else item.name
+        f"{item.name} ({item.quantity:g} {item.unit}{", expires " + item.expires_on if item.expires_on else ""})" if item.quantity is not None and item.unit
+        else f"{item.name}{" (expires " + item.expires_on + ")" if item.expires_on else ""}"
         for item in request.pantry
     )
     preferences = ", ".join(request.dietary_preferences) or "none specified"
+    priority_rule = "Prioritize ingredients with the nearest expiry date when practical." if request.prioritize_expiring else "Do not prioritize expiry dates unless they naturally fit the recipe."
     prompt = f"""
 You are the recipe intelligence engine for a private kitchen app.
 Create ONE practical recipe using the user's pantry as the primary source.
@@ -54,6 +57,7 @@ Goal: {request.goal}
 Maximum cooking time: {request.max_time_minutes} minutes
 Dietary preferences: {preferences}
 Preferred cuisine: {request.cuisine}
+Expiry strategy: {priority_rule}
 
 Rules:
 - Prefer ingredients already in the pantry.
