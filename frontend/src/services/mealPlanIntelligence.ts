@@ -177,3 +177,21 @@ export function diversifyMealCandidates(
     return b.pantryCoverage - a.pantryCoverage;
   });
 }
+
+
+export function buildMealPlanShoppingList(
+  recipes: SavedRecipeOption[],
+  plannedRecipeIds: string[],
+): string[] {
+  const byId = new Map(recipes.map((recipe) => [recipe.id, recipe]));
+  const unique = new Map<string, string>();
+  for (const id of plannedRecipeIds) {
+    const recipe = byId.get(id);
+    if (!recipe) continue;
+    for (const ingredient of recipeIngredients(recipe).missing) {
+      const key = normalize(ingredient);
+      if (key && !unique.has(key)) unique.set(key, ingredient);
+    }
+  }
+  return [...unique.values()].sort((a, b) => a.localeCompare(b));
+}
