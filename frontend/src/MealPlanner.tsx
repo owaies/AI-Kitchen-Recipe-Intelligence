@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, Check, Clock3, Plus, ShoppingBasket, Trash2, X } from "lucide-react";
+import { CalendarDays, Check, Clock3, Plus, ShoppingBasket, Sparkles, Trash2, X } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { createMealPlan, deleteMealPlan, listMealPlans, listSavedRecipeOptions, type MealPlanRow, type SavedRecipeOption } from "./services/mealPlans";
 import { addUniqueShoppingItems } from "./services/shopping";
-import { listPantryItems } from "./services/pantry";
-import { buildMealPlanFocus, type MealPlanFocus } from "./services/mealPlanIntelligence";
+import { listPantryItems, type PantryRow } from "./services/pantry";
+import { buildMealPlanFocus, buildSmartMealCandidates, explainMealPlanCandidate, type MealPlanCandidate, type MealPlanFocus } from "./services/mealPlanIntelligence";
 
 const meals: { value: MealPlanRow["meal_type"]; label: string }[] = [
   { value: "breakfast", label: "Breakfast" },
@@ -40,11 +40,12 @@ function urgencyLabel(value: MealPlanFocus["ingredients"][number]) {
   return value.daysLeft === null ? "no date" : `${value.daysLeft} days`;
 }
 
-export default function MealPlanner() {
+export default function MealPlanner({ maxTime = 45, preferences = [] }: { maxTime?: number; preferences?: string[] }) {
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const [plans, setPlans] = useState<MealPlanRow[]>([]);
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipeOption[]>([]);
   const [pantryFocus, setPantryFocus] = useState<MealPlanFocus | null>(null);
+  const [pantryRows, setPantryRows] = useState<PantryRow[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [date, setDate] = useState(iso(startOfWeek(new Date())));
   const [mealType, setMealType] = useState<MealPlanRow["meal_type"]>("dinner");
@@ -78,6 +79,19 @@ export default function MealPlanner() {
   }, [days]);
 
   const recipeName = (id: string | null) => savedRecipes.find((recipe) => recipe.id === id)?.title ?? null;
+
+  const smartCandidates = useMemo(
+    () => buildSmartMealCandidates(savedRecipes, pantryRows, maxTime, preferences, plans.map((plan) => plan.recipe_id).filter((id): id is string => Boolean(id))),
+    [savedRecipes, pantryRows, maxTime, preferences, plans],
+  );
+
+  const planCandidate = (candidate: MealPlanCandidate) => {
+    setDate(days[0]);
+    setMealType("dinner");
+    setRecipeId(candidate.recipe.id);
+    setNotes(explainMealPlanCandidate(candidate, pantryRows, maxTime, preferences).pantry);
+    setShowAdd(true);
+  };
 
   const add = async () => {
     if (!date || busy) return;
@@ -185,6 +199,38 @@ export default function MealPlanner() {
               <div><strong>Pantry ready</strong><span>No expiry pressure</span></div>
             )}
             <button onClick={() => setShowAdd(true)}>Plan around it <Plus size={14} /></button>
+          </div>
+        </section>
+      )}
+
+      {smartCandidates.length > 0 && (
+        <section className="meal-smart-board">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow"><Sparkles size={13} /> Smart meal planning</span>
+              <h2>Meals shaped around your kitchen.</h2>
+              <p>Suggestions balance pantry coverage, expiry pressure, preferences, cooking time, and variety.</p>
+            </div>
+          </div>
+          <div className="meal-smart-grid">
+            {smartCandidates.slice(0, 3).map((candidate) => {
+              const explanation = explainMealPlanCandidate(candidate, pantryRows, maxTime, preferences);
+              return (
+                <article className="meal-smart-card" key={candidate.recipe.id}>
+                  <div>
+                    <span className="eyebrow">{candidate.pantryCoverage}% pantry fit</span>
+                    <h3>{candidate.recipe.title}</h3>
+                    <p>{candidate.reason}</p>
+                  </div>
+                  <div className="meal-smart-signals">
+                    <span>{explanation.pantry}</span>
+                    <span>{explanation.expiry}</span>
+                    <span>{explanation.time}</span>
+                  </div>
+                  <button className="primary" onClick={() => planCandidate(candidate)}>Plan this meal <Plus size={14} /></button>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
