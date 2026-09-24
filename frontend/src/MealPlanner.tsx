@@ -73,6 +73,7 @@ export default function MealPlanner({ maxTime = 45, preferences = [] }: { maxTim
       .then(([nextPlans, nextRecipes, pantry]) => {
         setPlans(nextPlans);
         setSavedRecipes(nextRecipes);
+        setPantryRows(pantry);
         setPantryFocus(buildMealPlanFocus(pantry));
       })
       .catch((error) => setMessage(error instanceof Error ? error.message : "Could not load your meal plan."));
