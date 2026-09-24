@@ -195,3 +195,33 @@ export function buildMealPlanShoppingList(
   }
   return [...unique.values()].sort((a, b) => a.localeCompare(b));
 }
+
+
+export type MealPlanExplanation = {
+  pantry: string;
+  expiry: string;
+  time: string;
+  preference: string;
+};
+
+export function explainMealPlanCandidate(
+  candidate: MealPlanCandidate,
+  pantry: PantryRow[],
+  maxMinutes: number,
+  preferences: string[] = [],
+): MealPlanExplanation {
+  const { used } = recipeIngredients(candidate.recipe);
+  const urgent = used.filter((ingredient) =>
+    pantry.some((item) => {
+      const days = item.expires_on ? Math.ceil((new Date(item.expires_on).getTime() - Date.now()) / 86400000) : 999;
+      return (item.name.toLowerCase().includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(item.name.toLowerCase())) && days >= 0 && days <= 3;
+    }),
+  );
+  const time = Number(candidate.recipe.recipe_data?.time ?? candidate.recipe.recipe_data?.time_minutes ?? 999);
+  return {
+    pantry: `${candidate.pantryCoverage}% pantry coverage`,
+    expiry: urgent.length ? `Uses ${urgent.slice(0, 2).map((item) => item.name).join(" and ")} before expiry` : "No urgent expiry match",
+    time: time <= maxMinutes ? `Fits your ${maxMinutes}-minute limit` : `Exceeds your ${maxMinutes}-minute limit`,
+    preference: preferences.length ? `Checked against ${preferences.join(", ")}` : "No dietary preference filter",
+  };
+}
