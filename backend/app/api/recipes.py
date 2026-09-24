@@ -39,13 +39,16 @@ async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
 
 
 
+def _pantry_label(item: PantryIngredient) -> str:
+    quantity = f"{item.quantity:g} {item.unit}" if item.quantity is not None and item.unit else ""
+    expiry = f", expires {item.expires_on}" if item.expires_on else ""
+    details = f" ({quantity}{expiry})" if quantity or expiry else ""
+    return f"{item.name}{details}"
+
+
 @router.post("/generate/stream")
 async def stream_recipe_endpoint(request: RecipeRequest) -> StreamingResponse:
-    pantry_text = ", ".join(
-        f"{item.name} ({item.quantity:g} {item.unit}{", expires " + item.expires_on if item.expires_on else ""})" if item.quantity is not None and item.unit
-        else f"{item.name}{" (expires " + item.expires_on + ")" if item.expires_on else ""}"
-        for item in request.pantry
-    )
+    pantry_text = ", ".join(_pantry_label(item) for item in request.pantry)
     preferences = ", ".join(request.dietary_preferences) or "none specified"
     priority_rule = "Prioritize ingredients with the nearest expiry date when practical." if request.prioritize_expiring else "Do not prioritize expiry dates unless they naturally fit the recipe."
     prompt = f"""
@@ -86,12 +89,9 @@ Rules:
 
 @router.post("/generate")
 async def generate_recipe_endpoint(request: RecipeRequest) -> dict:
-    pantry_text = ", ".join(
-        f"{item.name} ({item.quantity:g} {item.unit})" if item.quantity is not None and item.unit
-        else item.name
-        for item in request.pantry
-    )
+    pantry_text = ", ".join(_pantry_label(item) for item in request.pantry)
     preferences = ", ".join(request.dietary_preferences) or "none specified"
+    priority_rule = "Prioritize ingredients with the nearest expiry date when practical." if request.prioritize_expiring else "Do not prioritize expiry dates unless they naturally fit the recipe."
 
     prompt = f"""
 You are the recipe intelligence engine for a private kitchen app.
@@ -102,6 +102,7 @@ Goal: {request.goal}
 Maximum cooking time: {request.max_time_minutes} minutes
 Dietary preferences: {preferences}
 Preferred cuisine: {request.cuisine}
+Expiry strategy: {priority_rule}
 
 Rules:
 - Prefer ingredients already in the pantry.
