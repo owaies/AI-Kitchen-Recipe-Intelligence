@@ -1341,3 +1341,59 @@ body.cook-mode-open{overflow:hidden}
 
 /* feat(ux): complete pantry-to-recipes transition */
 .ingredientBridge{will-change:transform,opacity}.image-transition.shopping .transition-copy,.image-transition.recipes .transition-copy{animation-duration:.85s}.image-transition.recipes .transition-food-image{transform-origin:center}.image-transition.recipes{background:#1c120d}.image-transition.recipes .transition-image-wash{background:linear-gradient(90deg,rgba(25,15,10,.82),rgba(25,15,10,.35) 48%,rgba(25,15,10,.16)),linear-gradient(180deg,rgba(15,10,7,.22),transparent 45%,rgba(15,10,7,.58))}
+
+/* Day 4 · AI Kitchen Intelligence */
+.kitchen-intelligence.intelligence-board{display:block;margin:36px 0 46px;padding:30px;background:linear-gradient(135deg,#f3ecdd 0%,#fbf7ee 58%,#efe5d1 100%);border:1px solid #ded3c1;border-radius:22px;box-shadow:0 22px 55px rgba(57,43,31,.08)}
+.intelligence-board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;position:relative;z-index:1}
+.intelligence-board-head h2{margin:9px 0 7px;font:500 clamp(28px,3.2vw,42px)/1 "Playfair Display";letter-spacing:-.035em}
+.intelligence-board-head p{max-width:680px;margin:0;color:var(--muted);font-size:11px;line-height:1.65}
+.intelligence-ask{border:0;background:var(--espresso);color:#fff;border-radius:999px;padding:11px 14px;font:9px "DM Mono";display:flex;align-items:center;gap:7px;white-space:nowrap;transition:transform .2s,box-shadow .2s}
+.intelligence-ask:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(46,36,29,.18)}
+.intelligence-score-grid{display:grid;grid-template-columns:minmax(260px,1.5fr) repeat(2,minmax(150px,.6fr));gap:9px;margin-top:24px}
+.intelligence-score-card,.intelligence-mini-card{background:rgba(255,253,248,.72);border:1px solid #e1d6c4;border-radius:14px;padding:16px}
+.intelligence-score-card>span,.intelligence-mini-card>span{display:block;font:8px "DM Mono";letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.intelligence-score-card>strong{display:block;font:500 38px "Playfair Display";margin:4px 0 7px}
+.intelligence-score-card>strong small{font:11px "DM Mono";color:var(--muted);margin-left:4px}
+.intelligence-score-card p{margin:8px 0 0;font-size:10px;color:var(--muted)}
+.intelligence-progress{height:5px;background:#e6dccb;border-radius:99px;overflow:hidden}
+.intelligence-progress i{display:block;height:100%;background:var(--olive);border-radius:99px}
+.intelligence-mini-card{display:grid;grid-template-columns:22px 1fr;grid-template-rows:auto auto;align-content:center;column-gap:6px}
+.intelligence-mini-card svg{grid-row:1/3;color:var(--tomato);align-self:start;margin-top:2px}
+.intelligence-mini-card strong{font:500 27px "Playfair Display"}
+.intelligence-mini-card span{grid-column:2;font-size:8px;line-height:1.4}
+.intelligence-board-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:10px;margin-top:10px}
+.intelligence-use-first,.intelligence-recommendations{background:rgba(255,253,248,.72);border:1px solid #e1d6c4;border-radius:14px;padding:17px}
+.intelligence-subhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.intelligence-subhead h3{font:500 23px "Playfair Display";margin:5px 0 0}
+.intelligence-subhead>svg{color:var(--tomato);margin-top:3px}
+.intelligence-subhead button{border:0;background:transparent;color:var(--tomato);font:9px "DM Mono";padding:5px 0}
+.intelligence-ingredient{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:9px;padding:10px 0;border-top:1px solid #e8dfd0}
+.intelligence-ingredient-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e8eadb;color:var(--olive);font:italic 17px "Playfair Display"}
+.intelligence-ingredient strong,.intelligence-ingredient small{display:block}
+.intelligence-ingredient strong{font:500 14px "Playfair Display"}
+.intelligence-ingredient small{font-size:9px;color:var(--muted);margin-top:2px}
+.intelligence-ingredient>span{font:8px "DM Mono";text-transform:uppercase;color:var(--muted)}
+.intelligence-ingredient>span.warn{color:#a27b24}.intelligence-ingredient>span.danger{color:var(--tomato);font-weight:600}
+.intelligence-recipe{width:100%;display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:10px;text-align:left;border:0;border-top:1px solid #e8dfd0;background:transparent;padding:9px 0;color:var(--espresso)}
+.intelligence-recipe img{width:56px;height:48px;border-radius:8px;object-fit:cover}
+.intelligence-recipe span{min-width:0}.intelligence-recipe strong,.intelligence-recipe small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.intelligence-recipe strong{font:500 15px "Playfair Display"}.intelligence-recipe small{font:8px "DM Mono";color:var(--muted);margin-top:3px}
+.intelligence-recipe i{font-style:normal;color:var(--tomato);font-size:17px;transition:transform .2s}
+.intelligence-recipe:hover i{transform:translateX(4px)}
+.intelligence-empty{padding:18px 4px;color:var(--muted);font-size:10px;line-height:1.6}
+.expiry-priority{border:1px solid #ffffff55!important;background:rgba(255,255,255,.07)!important;color:#f4f5ed!important}
+.expiry-priority.selected{background:var(--butter)!important;border-color:var(--butter)!important;color:var(--espresso)!important}
+.expiry-priority span{font:8px "DM Mono";opacity:.7}
+@media(max-width:800px){
+  .intelligence-board-head{display:block}
+  .intelligence-ask{margin-top:14px}
+  .intelligence-score-grid{grid-template-columns:1fr 1fr}
+  .intelligence-score-card{grid-column:1/-1}
+  .intelligence-board-grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .kitchen-intelligence.intelligence-board{padding:20px;margin:26px 0 36px}
+  .intelligence-score-grid{grid-template-columns:1fr}
+  .intelligence-score-card{grid-column:auto}
+  .intelligence-board-head h2{font-size:30px}
+}
