@@ -51,11 +51,12 @@ export default function KitchenIntelligence({ pantry, onExplore }: Props) {
     .sort((a, b) => (a.days ?? 999) - (b.days ?? 999));
 
   const atRisk = scoredPantry.filter(({ days }) => days !== null && days <= 3);
+  const priorityItems = scoredPantry.filter(({ days }) => days !== null && days >= 0 && days <= 3);
   const expiring = scoredPantry.filter(({ days }) => days !== null && days >= 0 && days <= 7);
   const score = scoreKitchen(pantry);
 
   const recommendations = generateRecipeIntelligence(pantry)
-    .map((recipe) => ({ recipe, score: recipe.match + recipeExpiryBoost(recipe, atRisk.map(({ item }) => item)) }))
+    .map((recipe) => ({ recipe, score: recipe.match + recipeExpiryBoost(recipe, priorityItems.map(({ item }) => item)) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map(({ recipe }) => recipe);
