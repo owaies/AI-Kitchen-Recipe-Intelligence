@@ -1423,3 +1423,17 @@ body.cook-mode-open{overflow:hidden}
   .recipe-filter-bar{grid-template-columns:1fr}
   .recipe-filter-count{justify-self:start;padding:5px 0}
 }
+
+
+/* Day 4 · Explainable recipe intelligence */
+.kitchen-score-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:9px 0 5px;font:8px "DM Mono";color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.kitchen-score-row b{color:var(--espresso);font-size:9px;padding:4px 7px;border-radius:999px;background:#eee5d5}
+.kitchen-score-row span{padding:3px 5px;border:1px solid #e2d7c5;border-radius:999px;background:#fffdf8}
+.kitchen-score-detail{display:grid;grid-template-columns:1.35fr repeat(5,1fr);gap:6px;margin:16px 0 18px}
+.kitchen-score-detail>div{min-width:0;padding:10px 8px;border:1px solid #e1d6c4;border-radius:10px;background:#fffdf8;text-align:center}
+.kitchen-score-detail>div:first-child{background:#f0eadb}
+.kitchen-score-detail strong,.kitchen-score-detail b{display:block;font:500 22px "Playfair Display";color:var(--espresso)}
+.kitchen-score-detail>div:first-child strong{font-size:30px}
+.kitchen-score-detail span{display:block;margin-top:3px;font:7px "DM Mono";text-transform:uppercase;color:var(--muted)}
+@media(max-width:700px){.kitchen-score-detail{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:460px){.kitchen-score-detail{grid-template-columns:repeat(2,1fr)}.kitchen-score-row{gap:5px}}
