@@ -86,3 +86,17 @@ Fallback order used from the uploaded OpenRouter Newest/Free model list:
 The backend falls through the chain when a model is unavailable, rate-limited, returns an invalid structured response, or encounters a transient network failure. Streaming generation also resets cleanly between fallback attempts so partial output from a failed model is not treated as the final recipe.
 
 The exact model list is configurable with `OPENROUTER_FALLBACK_MODELS`, so the chain can be updated without changing application code.
+
+
+## Recipe intelligence
+
+### Explainable Kitchen Fit scoring
+Recipe cards now expose a deterministic **Kitchen Fit** score rather than treating the pantry-match percentage as the whole recommendation signal. The score combines:
+- pantry match
+- expiry priority
+- time fit against the selected cooking limit
+- selected dietary-preference fit
+- missing-ingredient burden
+
+Each signal remains visible so the recommendation can be explained instead of presented as a black-box score.
+
