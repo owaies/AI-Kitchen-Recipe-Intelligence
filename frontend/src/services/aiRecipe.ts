@@ -120,11 +120,12 @@ export async function streamAIRecipe(
     method: "POST",
     headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
     body: JSON.stringify({
-      pantry: pantry.map(({ name, quantity, unit }) => ({ name, quantity, unit })),
+      pantry: pantry.map(({ name, quantity, unit, expires_on }) => ({ name, quantity, unit, expires_on })),
       goal,
       max_time_minutes: maxTimeMinutes,
       dietary_preferences: dietaryPreferences,
       cuisine,
+      prioritize_expiring: prioritizeExpiring,
     }),
   });
 
