@@ -550,7 +550,7 @@ function App() {
           ) : active === "Shopping list" ? (
             <ShoppingList onRecipes={() => setActive("Recipes")} />
           ) : active === "Meal plan" ? (
-            <MealPlanner />
+            <MealPlanner maxTime={aiMaxTime} preferences={dietaryPreferences} />
           ) : active === "Recipes" ? (
             <section className="recipes-page">
               <motion.div className="recipe-intelligence-hero" style={{ y: storyY }}>
