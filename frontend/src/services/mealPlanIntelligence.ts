@@ -225,3 +225,51 @@ export function explainMealPlanCandidate(
     preference: preferences.length ? `Checked against ${preferences.join(", ")}` : "No dietary preference filter",
   };
 }
+
+
+export function buildSmartMealCandidates(
+  recipes: SavedRecipeOption[],
+  pantry: PantryRow[],
+  maxMinutes: number,
+  preferences: string[],
+  plannedRecipeIds: string[] = [],
+): MealPlanCandidate[] {
+  const planned = new Set(plannedRecipeIds);
+  const pantryNames = pantry.map((item) => ({
+    name: item.name.toLowerCase(),
+    days: item.expires_on ? Math.ceil((new Date(item.expires_on).getTime() - Date.now()) / 86400000) : 999,
+  }));
+  const meat = ["chicken", "beef", "pork", "mutton", "lamb", "fish", "salmon", "tuna", "shrimp", "prawn", "meat", "turkey"];
+  const dairy = ["milk", "cream", "cheese", "parmesan", "yogurt", "butter", "ghee"];
+
+  return recipes.map((recipe) => {
+    const base = rankPantryAwareMeals([recipe])[0];
+    const { used } = recipeIngredients(recipe);
+    const urgent = used.filter((ingredient) => pantryNames.some((item) =>
+      (item.name.includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(item.name)) && item.days >= 0 && item.days <= 3,
+    )).length;
+    const time = Number(recipe.recipe_data?.time ?? recipe.recipe_data?.time_minutes ?? 999);
+    const values = [...used, ...(Array.isArray(recipe.recipe_data?.missing) ? recipe.recipe_data.missing.filter((x): x is string => typeof x === "string") : []), recipe.title].map(String).join(" ").toLowerCase();
+    const nutrition = recipe.recipe_data?.nutrition as { protein?: number } | undefined;
+    let preferenceFit = 0;
+    if (preferences.includes("Vegetarian") && !containsAny([values], meat)) preferenceFit++;
+    if (preferences.includes("Dairy-free") && !containsAny([values], dairy)) preferenceFit++;
+    if (preferences.includes("High protein") && Number(nutrition?.protein ?? 0) >= 20) preferenceFit++;
+    const preferenceRatio = preferences.length ? preferenceFit / preferences.length : 1;
+    const timeFit = time <= maxMinutes ? 1 : Math.max(0, maxMinutes / Math.max(time, 1));
+    const repeatPenalty = planned.has(recipe.id) ? 25 : 0;
+    const score = base.pantryCoverage * 0.45 + Math.min(urgent, 3) * 12 + preferenceRatio * 20 + timeFit * 10 - repeatPenalty;
+    return {
+      ...base,
+      reason: urgent
+        ? `Uses ${urgent} pantry ingredient${urgent === 1 ? "" : "s"} before expiry · ${base.pantryCoverage}% pantry coverage`
+        : time <= maxMinutes
+          ? `${time} min fits your ${maxMinutes}-minute limit · ${base.pantryCoverage}% pantry coverage`
+          : base.reason,
+      _score: score,
+    };
+  })
+    .sort((a, b) => b._score - a._score)
+    .map(({ _score, ...candidate }) => candidate)
+    .slice(0, 6);
+}
