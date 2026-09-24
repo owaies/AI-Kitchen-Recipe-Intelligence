@@ -105,3 +105,19 @@ Each signal remains visible so the recommendation can be explained instead of pr
 
 Users can also reorder recipe results by Best fit, Use expiring first, Fastest, or Highest pantry match.
 
+
+## Verified deployment
+
+- Production platform: Vercel
+- Latest verified production commit: `4a74693ccb64237a774fa9c28e8d97d420e12bc9`
+- Deployment status: READY
+- GitHub Vercel status check: success
+- Production URL: https://ai-kitchen-recipe-intelligence-navy.vercel.app
+
+## Project presentation
+
+- Canva presentation: https://canva.link/kp1t3iqjbir4p4k
+- Canva interview cheat sheet: https://canva.link/6kcdt09ht6ayayy
+
+The presentation and cheat sheet follow the application's Modern Culinary Magazine visual direction: warm cream surfaces, tomato red, olive green, espresso brown, butter yellow, editorial typography, and recipe-card inspired layouts.
+
