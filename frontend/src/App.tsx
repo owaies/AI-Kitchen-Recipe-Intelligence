@@ -291,7 +291,7 @@ function App() {
   const openEdit = (item: PantryItem) => {
     setEditing(item); setEditName(item.name); setEditQuantity(item.amount.split(" ")[0] || "1");
     setEditUnit(item.amount.split(" ").slice(1).join(" ") || "item"); setEditCategory(item.category);
-    setEditExpiry(/^\\d{4}-\\d{2}-\\d{2}$/.test(item.expiry) ? item.expiry : ""); setPantryError("");
+    setEditExpiry(/^\d{4}-\d{2}-\d{2}$/.test(item.expiry) ? item.expiry : ""); setPantryError("");
   };
 
   const savePantryEdit = async () => {
