@@ -26,14 +26,15 @@ AI Kitchen & Recipe Intelligence combines pantry management, ingredient recognit
 - Weekly meal planning
 - Shopping-list workflow
 - Saved recipes
-- Dietary preferences and cuisine controls
+- Dietary preferences, cuisine controls, and expiry-priority AI generation
+- AI Kitchen Intelligence dashboard with freshness scoring, expiry queue, and priority recipe suggestions
 - Responsive culinary interface
 
 ## AI workflow
 
 Photo → YOLO → ingredient candidates → user confirmation → Supabase Pantry
 
-Pantry → OpenRouter primary → fallback model chain → structured recipe → recipe workspace
+Pantry + expiry context → Kitchen Intelligence → OpenRouter primary → fallback model chain → structured recipe → recipe workspace
 
 ## Important computer-vision limitation
 
