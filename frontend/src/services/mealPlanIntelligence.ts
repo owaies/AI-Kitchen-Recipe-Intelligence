@@ -155,3 +155,25 @@ export function rankTimeAwareMeals(recipes: SavedRecipeOption[], maxMinutes: num
       return fitsB - fitsA || Math.abs(timeA - maxMinutes) - Math.abs(timeB - maxMinutes) || b.pantryCoverage - a.pantryCoverage;
     });
 }
+
+
+export function diversifyMealCandidates(
+  candidates: MealPlanCandidate[],
+  plannedRecipeIds: string[] = [],
+): MealPlanCandidate[] {
+  const planned = new Set(plannedRecipeIds);
+  const usedIngredientSets = new Set<string>();
+  return [...candidates].sort((a, b) => {
+    const aPlanned = planned.has(a.recipe.id) ? 1 : 0;
+    const bPlanned = planned.has(b.recipe.id) ? 1 : 0;
+    if (aPlanned !== bPlanned) return aPlanned - bPlanned;
+    const ingredientsA = recipeIngredients(a.recipe).used.map((item) => item.toLowerCase()).sort().slice(0, 3).join("|");
+    const ingredientsB = recipeIngredients(b.recipe).used.map((item) => item.toLowerCase()).sort().slice(0, 3).join("|");
+    const repeatA = usedIngredientSets.has(ingredientsA) ? 1 : 0;
+    const repeatB = usedIngredientSets.has(ingredientsB) ? 1 : 0;
+    if (repeatA !== repeatB) return repeatA - repeatB;
+    usedIngredientSets.add(ingredientsA);
+    usedIngredientSets.add(ingredientsB);
+    return b.pantryCoverage - a.pantryCoverage;
+  });
+}
