@@ -26,13 +26,23 @@ def _parse_json_content(content: object) -> dict:
         raise OpenRouterError("OpenRouter returned an unsupported recipe response.")
 
     text = content.strip()
-    if text.lower().startswith("'''json"):
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].strip().lower() in {"```", "```json"}:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    elif text.lower().startswith("'''json"):
         text = text[7:]
+        if text.endswith("'''"):
+            text = text[:-3]
+        text = text.strip()
     elif text.startswith("'''"):
         text = text[3:]
-    if text.endswith("'''"):
-        text = text[:-3]
-    text = text.strip()
+        if text.endswith("'''"):
+            text = text[:-3]
+        text = text.strip()
 
     try:
         parsed = json.loads(text)
@@ -61,8 +71,8 @@ def get_openrouter_models() -> list[str]:
     return list(dict.fromkeys([primary, *fallbacks]))[:11]
 
 
-def _payload(prompt: str, model: str, stream: bool = False) -> dict:
-    return {
+def _payload(prompt: str, model: str, stream: bool = False, structured: bool = True) -> dict:
+    payload = {
         "model": model,
         "messages": [
             {
@@ -81,9 +91,11 @@ def _payload(prompt: str, model: str, stream: bool = False) -> dict:
         ],
         "temperature": 0.4,
         "max_tokens": 1400,
-        "response_format": {"type": "json_object"},
         **({"stream": True} if stream else {}),
     }
+    if structured:
+        payload["response_format"] = {"type": "json_object"}
+    return payload
 
 
 def _headers() -> dict[str, str]:
@@ -109,8 +121,25 @@ async def generate_recipe_with_model(prompt: str) -> tuple[dict, str]:
                     response = await client.post(
                         OPENROUTER_URL,
                         headers=_headers(),
-                        json=_payload(prompt, model),
+                        json=_payload(prompt, model, structured=True),
                     )
+
+                    if response.status_code in {400, 404}:
+                        compatibility_response = await client.post(
+                            OPENROUTER_URL,
+                            headers=_headers(),
+                            json=_payload(prompt, model, structured=False),
+                        )
+                        if compatibility_response.is_success:
+                            response = compatibility_response
+                        else:
+                            last_detail = compatibility_response.text[:500]
+                            if compatibility_response.status_code in {401, 403}:
+                                raise OpenRouterError(
+                                    f"OpenRouter authentication failed ({compatibility_response.status_code})."
+                                )
+                            if compatibility_response.status_code not in TRANSIENT_STATUS_CODES:
+                                break
 
                     if response.is_success:
                         try:
@@ -166,7 +195,7 @@ async def stream_recipe(prompt: str):
                         "POST",
                         OPENROUTER_URL,
                         headers=_headers(),
-                        json=_payload(prompt, model, stream=True),
+                        json=_payload(prompt, model, stream=True, structured=True),
                     ) as response:
                         if response.is_success:
                             yield json.dumps({
