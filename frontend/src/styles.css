@@ -1451,3 +1451,7 @@ body.cook-mode-open{overflow:hidden}
 .why-signal span{color:var(--muted);line-height:1.5}
 .why-signal.positive b{color:#47734c}.why-signal.attention b{color:var(--tomato)}.why-signal.neutral b{color:var(--muted)}
 @media(max-width:520px){.why-signal{grid-template-columns:1fr;gap:3px}.why-recipe-heading span{display:none}}
+
+.recipe-filter-bar .custom-select-field:last-of-type{min-width:112px}
+.recipe-filter-bar .recipe-filter-count{margin-left:auto}
+@media(max-width:900px){.recipe-filter-bar .recipe-filter-count{margin-left:0;width:100%}}
