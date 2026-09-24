@@ -46,7 +46,11 @@ export type MealPlanCandidate = {
   reason: string;
 };
 
-function normalize(value: string) {\n  return value.trim().toLowerCase().replace(/\\s+/g, " ");\n}\n\nfunction recipeIngredients(recipe: SavedRecipeOption) {
+function normalize(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function recipeIngredients(recipe: SavedRecipeOption) {
   const data = recipe.recipe_data ?? {};
   const used = Array.isArray(data.used) ? data.used.filter((item): item is string => typeof item === "string") : [];
   const missing = Array.isArray(data.missing) ? data.missing.filter((item): item is string => typeof item === "string") : [];
