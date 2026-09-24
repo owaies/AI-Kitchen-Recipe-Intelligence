@@ -134,3 +134,24 @@ export function rankDietaryMeals(recipes: SavedRecipeOption[], preferences: stri
       return fit(b) - fit(a) || b.pantryCoverage - a.pantryCoverage;
     });
 }
+
+
+export function rankTimeAwareMeals(recipes: SavedRecipeOption[], maxMinutes: number): MealPlanCandidate[] {
+  return rankPantryAwareMeals(recipes)
+    .map((candidate) => {
+      const time = Number(candidate.recipe.recipe_data?.time ?? candidate.recipe.recipe_data?.time_minutes ?? 999);
+      return {
+        ...candidate,
+        reason: time <= maxMinutes
+          ? `${time} min fits your ${maxMinutes}-minute limit · ${candidate.pantryCoverage}% pantry coverage`
+          : `${time} min exceeds your ${maxMinutes}-minute limit · ${candidate.pantryCoverage}% pantry coverage`,
+      };
+    })
+    .sort((a, b) => {
+      const timeA = Number(a.recipe.recipe_data?.time ?? a.recipe.recipe_data?.time_minutes ?? 999);
+      const timeB = Number(b.recipe.recipe_data?.time ?? b.recipe.recipe_data?.time_minutes ?? 999);
+      const fitsA = timeA <= maxMinutes ? 1 : 0;
+      const fitsB = timeB <= maxMinutes ? 1 : 0;
+      return fitsB - fitsA || Math.abs(timeA - maxMinutes) - Math.abs(timeB - maxMinutes) || b.pantryCoverage - a.pantryCoverage;
+    });
+}
