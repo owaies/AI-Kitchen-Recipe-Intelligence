@@ -70,3 +70,30 @@ export function rankPantryAwareMeals(recipes: SavedRecipeOption[]): MealPlanCand
     })
     .sort((a, b) => b.pantryCoverage - a.pantryCoverage || a.missingCount - b.missingCount);
 }
+
+
+export function rankExpiryAwareMeals(
+  recipes: SavedRecipeOption[],
+  pantry: PantryRow[],
+): MealPlanCandidate[] {
+  const pantryNames = pantry.map((item) => ({ name: item.name.toLowerCase(), days: item.expires_on ? Math.ceil((new Date(item.expires_on).getTime() - Date.now()) / 86400000) : 999 }));
+  return rankPantryAwareMeals(recipes)
+    .map((candidate) => {
+      const used = recipeIngredients(candidate.recipe).used;
+      const urgent = used.filter((ingredient) =>
+        pantryNames.some((item) => item.name.includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(item.name)) &&
+        item.days >= 0 && item.days <= 3,
+      );
+      return {
+        ...candidate,
+        reason: urgent.length
+          ? `${candidate.pantryCoverage}% pantry coverage · uses ${urgent.slice(0, 2).join(" and ")} before expiry`
+          : candidate.reason,
+      };
+    })
+    .sort((a, b) => {
+      const urgentA = recipeIngredients(a.recipe).used.filter((ingredient) => pantryNames.some((item) => (item.name.includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(item.name)) && item.days >= 0 && item.days <= 3)).length;
+      const urgentB = recipeIngredients(b.recipe).used.filter((ingredient) => pantryNames.some((item) => (item.name.includes(ingredient.toLowerCase()) || ingredient.toLowerCase().includes(item.name)) && item.days >= 0 && item.days <= 3)).length;
+      return urgentB - urgentA || b.pantryCoverage - a.pantryCoverage;
+    });
+}
