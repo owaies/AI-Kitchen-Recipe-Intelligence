@@ -255,6 +255,67 @@ async def stream_recipe(prompt: str):
                         last_detail = (await response.aread()).decode(
                             "utf-8", errors="replace"
                         )[:500]
+                        if response.status_code in {400, 404}:
+                            async with client.stream(
+                                "POST",
+                                OPENROUTER_URL,
+                                headers=_headers(),
+                                json=_payload(prompt, model, stream=True, structured=False),
+                            ) as compatibility_response:
+                                if compatibility_response.is_success:
+                                    yield json.dumps({
+                                        "type": "start",
+                                        "model": model,
+                                        "attempt": model_index + 1,
+                                        "fallback": model_index > 0,
+                                    })
+                                    accumulated = ""
+                                    usage = None
+                                    async for line in compatibility_response.aiter_lines():
+                                        if not line or not line.startswith("data:"):
+                                            continue
+                                        data = line[5:].strip()
+                                        if data == "[DONE]":
+                                            break
+                                        try:
+                                            chunk = json.loads(data)
+                                        except json.JSONDecodeError:
+                                            continue
+                                        choices = chunk.get("choices") or []
+                                        if choices:
+                                            delta = (choices[0].get("delta") or {}).get("content")
+                                            if isinstance(delta, str) and delta:
+                                                accumulated += delta
+                                                yield json.dumps({
+                                                    "type": "delta",
+                                                    "content": delta,
+                                                })
+                                        if chunk.get("usage"):
+                                            usage = chunk["usage"]
+                                    try:
+                                        recipe = _parse_json_content(accumulated)
+                                    except OpenRouterError as exc:
+                                        last_detail = str(exc)
+                                        yield json.dumps({
+                                            "type": "fallback",
+                                            "message": f"{model} returned invalid recipe JSON. Trying the next model.",
+                                        })
+                                        break
+                                    reasoning_tokens = (
+                                        (usage or {}).get("completion_tokens_details", {}).get("reasoning_tokens")
+                                        if isinstance(usage, dict)
+                                        else None
+                                    )
+                                    yield json.dumps({
+                                        "type": "complete",
+                                        "model": model,
+                                        "recipe": recipe,
+                                        "usage": {"reasoning_tokens": reasoning_tokens},
+                                    })
+                                    return
+                                last_detail = (await compatibility_response.aread()).decode(
+                                    "utf-8", errors="replace"
+                                )[:500]
                         if response.status_code in {401, 403}:
                             raise OpenRouterError(
                                 f"OpenRouter authentication failed ({response.status_code})."
