@@ -10,6 +10,7 @@ import MealPlanner from "./MealPlanner";
 import PageTransitionScene from "./PageTransitionScene";
 import CookMode from "./CookMode";
 import PantryCupboard from "./PantryCupboard";
+import KitchenIntelligence from "./KitchenIntelligence";
 import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
@@ -136,6 +137,7 @@ function App() {
   const [aiMaxTime, setAiMaxTime] = useState(45);
   const [aiCuisine, setAiCuisine] = useState("Any cuisine");
   const [dietaryPreferences, setDietaryPreferences] = useState<string[]>([]);
+  const [prioritizeExpiring, setPrioritizeExpiring] = useState(true);
   const [saveBusy, setSaveBusy] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
   const [cookRecipe, setCookRecipe] = useState<SmartRecipe | null>(null);
@@ -380,7 +382,7 @@ function App() {
     setAiReasoningTokens(null);
     try {
       const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-      const recipe = await streamAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine, (update) => {
+      const recipe = await streamAIRecipe(rows, aiGoal, aiMaxTime, dietaryPreferences, aiCuisine, prioritizeExpiring, (update) => {
         if (update.type === "start") setAiStage(update.fallback ? `Fallback model ${update.attempt ?? ""} is thinking` : `${update.model} is thinking`);
         if (update.type === "delta") {
           setAiStage("Building your recipe");
@@ -506,7 +508,7 @@ function App() {
                     <label className="goal-field">GOAL<input value={aiGoal} onChange={(e) => setAiGoal(e.target.value)} aria-label="Recipe goal" /></label>
                     <CustomSelect label="TIME" value={aiMaxTime} onChange={(value) => setAiMaxTime(Number(value))} options={[{ value: 20, label: "20 min" }, { value: 30, label: "30 min" }, { value: 45, label: "45 min" }, { value: 60, label: "60 min" }]} />
                     <CustomSelect label="CUISINE" value={aiCuisine} onChange={(value) => setAiCuisine(String(value))} options={["Any cuisine", "Indian", "Italian", "Mexican", "Chinese", "Japanese", "Thai", "Korean", "Mediterranean", "Middle Eastern", "American"].map((item) => ({ value: item, label: item }))} />
-                    <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div>
+                    <div className="dietary-controls"><span>DIET</span>{["Vegetarian", "High protein", "Dairy-free"].map((option) => <button type="button" key={option} className={dietaryPreferences.includes(option) ? "selected" : ""} onClick={() => setDietaryPreferences((items) => items.includes(option) ? items.filter((item) => item !== option) : [...items, option])}>{option}<span className="diet-check">{dietaryPreferences.includes(option) ? "✓" : "+"}</span></button>)}</div><button type="button" className={prioritizeExpiring ? "expiry-priority selected" : "expiry-priority"} onClick={() => setPrioritizeExpiring((value) => !value)}><Clock3 size={12} /> Use expiring first <span>{prioritizeExpiring ? "ON" : "OFF"}</span></button>
                   </div>
                 </div>
                 <div className="recipe-actions"><button className="primary magnetic" onClick={generateAIRecipeFromPantry} disabled={aiBusy}><Sparkles size={15} /> {aiBusy ? "Asking Nemotron..." : "Ask Nemotron"}</button><button className="ghost" onClick={generateRecipes}>Use pantry engine</button></div>
@@ -577,6 +579,18 @@ function App() {
               <button onClick={() => navigateTo("Recipes")}>Ask your kitchen <ArrowRight size={14} /></button>
             </div>
           </section>
+
+          <KitchenIntelligence
+            pantry={pantry.map((item) => ({
+              id: item.id,
+              name: item.name,
+              quantity: Number(item.amount.split(" ")[0]) || 1,
+              unit: item.amount.split(" ").slice(1).join(" ") || "item",
+              category: item.category,
+              expires_on: /^\\d{4}-\\d{2}-\\d{2}$/.test(item.expiry) ? item.expiry : null,
+            }))}
+            onExplore={() => navigateTo("Recipes")}
+          />
 
           <section className="stats" aria-label="Kitchen statistics">
             <div><span>Pantry</span><strong><AnimatedNumber value={pantry.length} /></strong><small>ingredients</small></div>
