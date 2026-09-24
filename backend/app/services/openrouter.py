@@ -7,6 +7,7 @@ from backend.app.core.config import settings
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 TRANSIENT_STATUS_CODES = {408, 409, 429, 500, 502, 503, 504}
+RECIPE_TIMEOUT = httpx.Timeout(connect=10, read=25, write=15, pool=10)
 
 
 class OpenRouterError(RuntimeError):
@@ -68,12 +69,19 @@ def _payload(prompt: str, model: str, stream: bool = False) -> dict:
                 "role": "system",
                 "content": (
                     "You are the AI recipe intelligence engine for a private kitchen app. "
-                    "Return exactly one JSON object and no markdown."
+                    "Return exactly one JSON object and no markdown. "
+                    "The object must contain these keys: title, cuisine, time_minutes, difficulty, "
+                    "reason, used_ingredients, missing_ingredients, substitutions, steps, nutrition. "
+                    "nutrition must contain calories, protein_g, carbs_g, and fat_g. "
+                    "steps and ingredient fields must be arrays of strings. "
+                    "difficulty must be Easy, Medium, or Hard."
                 ),
             },
             {"role": "user", "content": prompt},
         ],
-        "temperature": 0.7,
+        "temperature": 0.4,
+        "max_tokens": 1400,
+        "response_format": {"type": "json_object"},
         **({"stream": True} if stream else {}),
     }
 
@@ -94,7 +102,7 @@ async def generate_recipe_with_model(prompt: str) -> tuple[dict, str]:
     models = get_openrouter_models()
     last_detail = "OpenRouter is temporarily unavailable."
 
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=RECIPE_TIMEOUT) as client:
         for model in models:
             for attempt in range(settings.openrouter_retries_per_model + 1):
                 try:
