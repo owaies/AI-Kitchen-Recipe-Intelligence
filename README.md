@@ -91,6 +91,9 @@ The exact model list is configurable with `OPENROUTER_FALLBACK_MODELS`, so the c
 ## Recipe intelligence
 
 ### Explainable Kitchen Fit scoring
+The recipe detail view also provides a **Why this recipe?** explanation. It describes the concrete signals behind the recommendation, including pantry coverage, ingredients nearing expiry, time fit, and shopping effort.
+
+
 Recipe cards now expose a deterministic **Kitchen Fit** score rather than treating the pantry-match percentage as the whole recommendation signal. The score combines:
 - pantry match
 - expiry priority
