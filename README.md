@@ -103,3 +103,5 @@ Recipe cards now expose a deterministic **Kitchen Fit** score rather than treati
 
 Each signal remains visible so the recommendation can be explained instead of presented as a black-box score.
 
+Users can also reorder recipe results by Best fit, Use expiring first, Fastest, or Highest pantry match.
+
