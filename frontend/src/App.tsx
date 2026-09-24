@@ -545,31 +545,33 @@ function App() {
                 <div className="recipe-empty"><Sparkles size={28} /><h3>Let your pantry lead.</h3><p>Add a few ingredients, then generate recipe ideas built around what you already own.</p><button className="primary magnetic" onClick={generateRecipes}>Generate recipes</button></div>
               ) : (
                 <>
-              <div className="recipe-filter-bar">
-                <label className="recipe-search"><Search size={14} /><input value={recipeSearch} onChange={(event) => setRecipeSearch(event.target.value)} placeholder="Search recipes, cuisines, ingredients..." aria-label="Search recipes" />{recipeSearch && <button type="button" onClick={() => setRecipeSearch("")} aria-label="Clear search"><X size={13} /></button>}</label>
-                <CustomSelect label="DIFFICULTY" value={recipeDifficulty} onChange={(value) => setRecipeDifficulty(String(value))} options={["All", "Easy", "Medium"].map((item) => ({ value: item, label: item }))} />
-                <CustomSelect label="TIME" value={recipeTimeFilter} onChange={(value) => setRecipeTimeFilter(String(value))} options={["Any time", "15 min", "30 min", "60 min"].map((item) => ({ value: item, label: item }))} />
-                <CustomSelect label="MATCH" value={recipeMatchFilter} onChange={(value) => setRecipeMatchFilter(Number(value))} options={[0, 50, 70, 85].map((item) => ({ value: item, label: item === 0 ? "Any match" : item + "%+" }))} />
-                <span className="recipe-filter-count">{visibleRecipes.length} of {recipeResults.length}</span>
-              </div>
-                {visibleRecipes.length === 0 ? (
-                  <div className="recipe-filter-empty"><Search size={22} /><strong>No recipes match those filters.</strong><span>Try clearing a filter or lowering the pantry-match threshold.</span><button type="button" onClick={() => { setRecipeSearch(""); setRecipeDifficulty("All"); setRecipeTimeFilter("Any time"); setRecipeMatchFilter(0); }}>Reset filters</button></div>
-                ) : (
-                  {visibleRecipes.map((recipe) => (
-                    <motion.article className="smart-recipe-card" layout key={recipe.id} initial={{opacity:0,scale:.96,y:10}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:-8}} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-                      <motion.div layoutId={`recipe-image-${recipe.id}`} className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></motion.div>
-                      <div className="smart-recipe-content"><motion.h3 layoutId={`recipe-title-${recipe.id}`}>{recipe.title}</motion.h3><p>{recipe.reason}</p>
-                      <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
-                      <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
-                      <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
-                    </motion.article>
-                  ))}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-                )}
+                  <div className="recipe-filter-bar">
+                    <label className="recipe-search"><Search size={14} /><input value={recipeSearch} onChange={(event) => setRecipeSearch(event.target.value)} placeholder="Search recipes, cuisines, ingredients..." aria-label="Search recipes" />{recipeSearch && <button type="button" onClick={() => setRecipeSearch("")} aria-label="Clear search"><X size={13} /></button>}</label>
+                    <CustomSelect label="DIFFICULTY" value={recipeDifficulty} onChange={(value) => setRecipeDifficulty(String(value))} options={["All", "Easy", "Medium"].map((item) => ({ value: item, label: item }))} />
+                    <CustomSelect label="TIME" value={recipeTimeFilter} onChange={(value) => setRecipeTimeFilter(String(value))} options={["Any time", "15 min", "30 min", "60 min"].map((item) => ({ value: item, label: item }))} />
+                    <CustomSelect label="MATCH" value={recipeMatchFilter} onChange={(value) => setRecipeMatchFilter(Number(value))} options={[0, 50, 70, 85].map((item) => ({ value: item, label: item === 0 ? "Any match" : item + "%+" }))} />
+                    <span className="recipe-filter-count">{visibleRecipes.length} of {recipeResults.length}</span>
+                  </div>
+                  {visibleRecipes.length === 0 ? (
+                    <div className="recipe-filter-empty"><Search size={22} /><strong>No recipes match those filters.</strong><span>Try clearing a filter or lowering the pantry-match threshold.</span><button type="button" onClick={() => { setRecipeSearch(""); setRecipeDifficulty("All"); setRecipeTimeFilter("Any time"); setRecipeMatchFilter(0); }}>Reset filters</button></div>
+                  ) : (
+                    <motion.div className="smart-recipe-grid recipe-carousel" layout drag="x" dragConstraints={{left:-700,right:0}} dragElastic={.08}>
+                      <AnimatePresence mode="popLayout">
+                        {visibleRecipes.map((recipe) => (
+                          <motion.article className="smart-recipe-card" layout key={recipe.id} initial={{opacity:0,scale:.96,y:10}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:.94,y:-8}} onClick={() => setSelectedRecipe(recipe)} whileHover={{ y: -7, scale: 1.008 }} whileTap={{ scale: 0.995 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
+                            <motion.div layoutId={`recipe-image-${recipe.id}`} className="smart-recipe-photo"><img src={recipe.image} alt="" loading="lazy" /><span>{recipe.cuisine}</span><strong>{recipe.match}% match</strong></motion.div>
+                            <div className="smart-recipe-content"><motion.h3 layoutId={`recipe-title-${recipe.id}`}>{recipe.title}</motion.h3><p>{recipe.reason}</p>
+                            <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
+                            <div className="match-bar"><i style={{ width: recipe.match + "%" }} /></div>
+                            <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
+                          </motion.article>
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
                 </>
-              )            </section>
+              )}
+            </section>
           ) : (
             <> 
           <section className="hero">
