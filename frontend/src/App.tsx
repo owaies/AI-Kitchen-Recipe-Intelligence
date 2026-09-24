@@ -410,20 +410,15 @@ function App() {
         normalized.includes("temporarily") ||
         normalized.includes("503");
 
-      if (quotaUnavailable) {
-        const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
-        const fallback = generateRecipeIntelligence(rows);
-        setRecipeResults(fallback);
-        setAiMessage(
-          normalized.includes("quota") || normalized.includes("429")
-            ? "OpenRouter models are currently rate-limited. Showing pantry-engine recipes instead."
-            : "OpenRouter fallback models are temporarily unavailable. Showing pantry-engine recipes instead. Showing pantry-engine recipes instead.",
-        );
-        setAiStage("Using pantry engine");
-      } else {
-        setAiMessage("OpenRouter could not generate a recipe right now. Please try again later.");
-        setAiStage("Generation stopped");
-      }
+      const rows = session ? await listPantryItems() : pantry.map((item) => ({ id: item.id, name: item.name, quantity: 1, unit: "item", category: item.category, expires_on: null }));
+      const fallback = generateRecipeIntelligence(rows);
+      setRecipeResults(fallback);
+      setAiMessage(
+        quotaUnavailable
+          ? "OpenRouter is temporarily unavailable or rate-limited. Showing pantry-engine recipes instead."
+          : "OpenRouter could not complete structured recipe generation. Showing pantry-engine recipes instead.",
+      );
+      setAiStage("Using pantry engine");
     } finally {
       setAiBusy(false);
     }
