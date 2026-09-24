@@ -1397,3 +1397,29 @@ body.cook-mode-open{overflow:hidden}
   .intelligence-score-card{grid-column:auto}
   .intelligence-board-head h2{font-size:30px}
 }
+
+/* Day 4 · Smart recipe discovery */
+.recipe-filter-bar{display:grid;grid-template-columns:minmax(220px,1.7fr) repeat(3,minmax(105px,.55fr)) auto;gap:8px;align-items:end;margin:18px 0 12px;padding:10px;background:#f3ecdf;border:1px solid #e1d5c2;border-radius:14px}
+.recipe-search{height:43px;display:flex;align-items:center;gap:8px;padding:0 11px;background:#fffdf8;border:1px solid #ded2c0;border-radius:10px;color:var(--muted);transition:border-color .2s,box-shadow .2s,transform .2s}
+.recipe-search:focus-within{border-color:#b9a789;box-shadow:0 8px 22px rgba(46,36,29,.08);transform:translateY(-1px)}
+.recipe-search input{width:100%;border:0;outline:0;background:transparent;color:var(--espresso);font:10px "DM Mono"}
+.recipe-search input::placeholder{color:#a69a8b}
+.recipe-search button{display:grid;place-items:center;border:0;background:transparent;color:var(--muted);padding:3px}
+.recipe-filter-bar .custom-select-field{min-width:0}
+.recipe-filter-bar .custom-select-trigger{height:43px}
+.recipe-filter-count{align-self:center;white-space:nowrap;padding:0 5px;color:var(--muted);font:8px "DM Mono";text-transform:uppercase;letter-spacing:.08em}
+.recipe-filter-empty{display:grid;justify-items:center;text-align:center;gap:7px;margin:10px 0;padding:40px 20px;border:1px dashed #d5c7b2;border-radius:16px;background:#fbf7ee;color:var(--muted)}
+.recipe-filter-empty svg{color:var(--tomato);margin-bottom:4px}
+.recipe-filter-empty strong{font:500 20px "Playfair Display";color:var(--espresso)}
+.recipe-filter-empty span{font-size:10px}
+.recipe-filter-empty button{margin-top:8px;border:1px solid #cfc1ac;background:transparent;border-radius:999px;padding:8px 12px;color:var(--espresso);font:9px "DM Mono"}
+.recipe-filter-empty button:hover{background:#eee4d3}
+@media(max-width:900px){
+  .recipe-filter-bar{grid-template-columns:1fr 1fr}
+  .recipe-search{grid-column:1/-1}
+  .recipe-filter-count{justify-self:end}
+}
+@media(max-width:520px){
+  .recipe-filter-bar{grid-template-columns:1fr}
+  .recipe-filter-count{justify-self:start;padding:5px 0}
+}
