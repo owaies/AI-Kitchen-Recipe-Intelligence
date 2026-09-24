@@ -15,7 +15,7 @@ import { supabase } from "./lib/supabase";
 import { signOut } from "./services/auth";
 import { createPantryItem, deletePantryItem, listPantryItems, updatePantryItem } from "./services/pantry";
 import { generateRecipeIntelligence, type SmartRecipe } from "./services/recipeIntelligence";
-import { getKitchenScore, type KitchenScoreSignals } from "./services/kitchenScore";
+import { explainKitchenScore, getKitchenScore, type KitchenScoreExplanation, type KitchenScoreSignals } from "./services/kitchenScore";
 import { generateAIRecipe, streamAIRecipe } from "./services/aiRecipe";
 import { saveGeneratedRecipe } from "./services/savedRecipes";
 import { detectIngredientsFromPhoto, type DetectedIngredient } from "./services/vision";
@@ -466,6 +466,16 @@ function App() {
       missing: 100,
     };
 
+  const getExplanation = (recipe: SmartRecipe): KitchenScoreExplanation[] =>
+    explainKitchenScore(
+      recipe,
+      getScore(recipe),
+      pantry.map((item) => ({ name: item.name, days: item.days })),
+      aiMaxTime,
+      prioritizeExpiring,
+    );
+
+
   if (authLoading) return <div className="auth-loading">Preparing your kitchen...</div>;
   if (supabase && !session) return <AuthScreen onAuthenticated={() => undefined} />;
 
@@ -585,7 +595,7 @@ function App() {
                             <div className="recipe-meta"><span><Clock3 size={13} /> {recipe.time} min</span><span>{recipe.difficulty}</span></div>
                             <div className="kitchen-score-row"><b>{getScore(recipe).overall}% fit</b><span>Pantry {getScore(recipe).pantry}</span><span>Expiry {getScore(recipe).expiry}</span><span>Time {getScore(recipe).time}</span></div>
                             <div className="match-bar"><i style={{ width: getScore(recipe).overall + "%" }} /></div>
-                            <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div></div>
+                            <div className="recipe-ingredients"><span>Have: {recipe.used.join(", ") || "none"}</span>{recipe.missing.length > 0 && <span>Need: {recipe.missing.join(", ")}</span>}</div><div className="why-recipe"><Sparkles size={11} /><span>{getExplanation(recipe)[0]?.detail}</span></div></div>
                           </motion.article>
                         ))}
                       </AnimatePresence>
@@ -704,7 +714,7 @@ function App() {
             <motion.div layoutId={`recipe-image-${selectedRecipe.id}`} className="recipe-detail-image" onPointerMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); event.currentTarget.style.setProperty("--rx", `${((event.clientX - rect.left) / rect.width - .5) * -18}px`); event.currentTarget.style.setProperty("--ry", `${((event.clientY - rect.top) / rect.height - .5) * -12}px`); }} onPointerLeave={(event) => { event.currentTarget.style.setProperty("--rx","0px"); event.currentTarget.style.setProperty("--ry","0px"); }}><img src={selectedRecipe.image} alt="" style={{transform:"translate3d(var(--rx,0px),var(--ry,0px),0) scale(1.04)",transition:"transform .35s cubic-bezier(.22,.8,.22,1)"}} /></motion.div>
             <span className="eyebrow"><Sparkles size={13} /> {getScore(selectedRecipe).overall}% kitchen fit</span>
             <motion.h2 layoutId={`recipe-title-${selectedRecipe.id}`}>{selectedRecipe.title}</motion.h2><p>{selectedRecipe.reason}</p>
-            <div className="kitchen-score-detail"><div><strong>{getScore(selectedRecipe).overall}</strong><span>Kitchen fit</span></div><div><b>{getScore(selectedRecipe).pantry}</b><span>Pantry</span></div><div><b>{getScore(selectedRecipe).expiry}</b><span>Expiry</span></div><div><b>{getScore(selectedRecipe).time}</b><span>Time</span></div><div><b>{getScore(selectedRecipe).preference}</b><span>Preference</span></div><div><b>{getScore(selectedRecipe).missing}</b><span>Shopping</span></div></div>
+            <div className="kitchen-score-detail"><div><strong>{getScore(selectedRecipe).overall}</strong><span>Kitchen fit</span></div><div><b>{getScore(selectedRecipe).pantry}</b><span>Pantry</span></div><div><b>{getScore(selectedRecipe).expiry}</b><span>Expiry</span></div><div><b>{getScore(selectedRecipe).time}</b><span>Time</span></div><div><b>{getScore(selectedRecipe).preference}</b><span>Preference</span></div><div><b>{getScore(selectedRecipe).missing}</b><span>Shopping</span></div></div><div className="why-recipe-detail"><div className="why-recipe-heading"><Sparkles size={13} /><strong>Why this recipe?</strong><span>Recommendation signals</span></div>{getExplanation(selectedRecipe).map((item) => <div className={"why-signal " + item.tone} key={item.label}><b>{item.label}</b><span>{item.detail}</span></div>)}</div>
             <div className="nutrition-strip"><span><b><AnimatedNumber value={selectedRecipe.nutrition.calories} /></b> kcal</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.protein} suffix="g" /></b> protein</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.carbs} suffix="g" /></b> carbs</span><span><b><AnimatedNumber value={selectedRecipe.nutrition.fat} suffix="g" /></b> fat</span></div>
             <div className="detail-columns"><div><strong>Use</strong>{selectedRecipe.used.map((item) => <span key={item}>✓ {item}</span>)}</div><div><strong>Shopping</strong>{selectedRecipe.missing.length ? selectedRecipe.missing.map((item) => <span key={item}>+ {item}</span>) : <span>Nothing essential missing.</span>}</div></div>
             {selectedRecipe.substitutions && selectedRecipe.substitutions.length > 0 && <div className="substitutions"><strong>Smart substitutions</strong>{selectedRecipe.substitutions.map((item) => <span key={item}>↳ {item}</span>)}</div>}
