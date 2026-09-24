@@ -1455,3 +1455,18 @@ body.cook-mode-open{overflow:hidden}
 .recipe-filter-bar .custom-select-field:last-of-type{min-width:112px}
 .recipe-filter-bar .recipe-filter-count{margin-left:auto}
 @media(max-width:900px){.recipe-filter-bar .recipe-filter-count{margin-left:0;width:100%}}
+
+.meal-smart-board{background:var(--paper);border:1px solid #e3d9c8;border-radius:18px;padding:24px;margin:0 0 28px}
+.meal-smart-board .section-head{margin-bottom:15px}
+.meal-smart-board .section-head h2{margin-bottom:5px}
+.meal-smart-board .section-head p{margin:0;color:var(--muted);font-size:12px}
+.meal-smart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.meal-smart-card{border:1px solid var(--line);background:#fbf6ea;border-radius:14px;padding:17px;display:flex;flex-direction:column;gap:13px}
+.meal-smart-card h3{font:500 21px "Playfair Display";margin:6px 0}
+.meal-smart-card p{font-size:11px;line-height:1.5;color:var(--muted);margin:0}
+.meal-smart-card .eyebrow{display:flex;align-items:center;gap:5px}
+.meal-smart-signals{display:flex;flex-wrap:wrap;gap:6px}
+.meal-smart-signals span{font:9px "DM Mono";color:var(--olive);background:#e7ead9;border-radius:20px;padding:6px 8px}
+.meal-smart-card .primary{justify-content:center;margin-top:auto}
+@media(max-width:900px){.meal-smart-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.meal-smart-grid{grid-template-columns:1fr}.meal-smart-board{padding:18px}}
