@@ -591,8 +591,9 @@ function App() {
                     <CustomSelect label="DIFFICULTY" value={recipeDifficulty} onChange={(value) => setRecipeDifficulty(String(value))} options={["All", "Easy", "Medium"].map((item) => ({ value: item, label: item }))} />
                     <CustomSelect label="TIME" value={recipeTimeFilter} onChange={(value) => setRecipeTimeFilter(String(value))} options={["Any time", "15 min", "30 min", "60 min"].map((item) => ({ value: item, label: item }))} />
                     <CustomSelect label="MATCH" value={recipeMatchFilter} onChange={(value) => setRecipeMatchFilter(Number(value))} options={[0, 50, 70, 85].map((item) => ({ value: item, label: item === 0 ? "Any match" : item + "%+" }))} />
+                    <CustomSelect label="SORT" value={recipeSort} options={[{value:"Best fit",label:"Best fit"},{value:"Use expiring first",label:"Use expiring first"},{value:"Fastest",label:"Fastest"},{value:"Highest pantry match",label:"Highest pantry match"}]} onChange={(value) => setRecipeSort(String(value))} />
                     <span className="recipe-filter-count">{visibleRecipes.length} of {recipeResults.length}</span>
-                  </div><CustomSelect label="Sort" value={recipeSort} options={[{value:"Best fit",label:"Best fit"},{value:"Use expiring first",label:"Use expiring first"},{value:"Fastest",label:"Fastest"},{value:"Highest pantry match",label:"Highest pantry match"}]} onChange={(value) => setRecipeSort(String(value))} />
+                  </div>
                   {visibleRecipes.length === 0 ? (
                     <div className="recipe-filter-empty"><Search size={22} /><strong>No recipes match those filters.</strong><span>Try clearing a filter or lowering the pantry-match threshold.</span><button type="button" onClick={() => { setRecipeSearch(""); setRecipeDifficulty("All"); setRecipeTimeFilter("Any time"); setRecipeMatchFilter(0); }}>Reset filters</button></div>
                   ) : (
