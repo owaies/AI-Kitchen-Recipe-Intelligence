@@ -138,6 +138,7 @@ export async function streamAIRecipe(
   const decoder = new TextDecoder();
   let buffer = "";
   let finalRecipe: SmartRecipe | null = null;
+  let streamError = "";
 
   const consume = (raw: string) => {
     const lines = raw.split("\n");
@@ -176,7 +177,8 @@ export async function streamAIRecipe(
         } else if (update.type === "fallback") {
           onUpdate?.({ type: "fallback", message: update.message ?? "Trying the next AI model." });
         } else if (update.type === "error") {
-          onUpdate?.({ type: "error", message: update.message ?? "AI generation failed." });
+          streamError = update.message ?? "AI generation failed.";
+          onUpdate?.({ type: "error", message: streamError });
         }
       } catch {
         // Ignore malformed SSE frames and keep the stream alive.
@@ -197,6 +199,6 @@ export async function streamAIRecipe(
     frames.forEach(consume);
   }
 
-  if (!finalRecipe) throw new Error("OpenRouter fallback chain ended without a complete recipe.");
+  if (!finalRecipe) throw new Error(streamError || "OpenRouter fallback chain ended without a complete recipe.");
   return finalRecipe;
 }
