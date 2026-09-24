@@ -97,3 +97,40 @@ export function rankExpiryAwareMeals(
       return urgentB - urgentA || b.pantryCoverage - a.pantryCoverage;
     });
 }
+
+
+const containsAny = (values: string[], terms: string[]) => {
+  const text = values.join(" ").toLowerCase();
+  return terms.some((term) => text.includes(term));
+};
+
+export function rankDietaryMeals(recipes: SavedRecipeOption[], preferences: string[]): MealPlanCandidate[] {
+  if (!preferences.length) return rankPantryAwareMeals(recipes);
+  const meat = ["chicken", "beef", "pork", "mutton", "lamb", "fish", "salmon", "tuna", "shrimp", "prawn", "meat", "turkey"];
+  const dairy = ["milk", "cream", "cheese", "parmesan", "yogurt", "butter", "ghee"];
+  return rankPantryAwareMeals(recipes)
+    .map((candidate) => {
+      const { used, missing } = recipeIngredients(candidate.recipe);
+      const values = [...used, ...missing, candidate.recipe.title];
+      const nutrition = candidate.recipe.recipe_data?.nutrition as { protein?: number } | undefined;
+      let matched = 0;
+      if (preferences.includes("Vegetarian") && !containsAny(values, meat)) matched += 1;
+      if (preferences.includes("Dairy-free") && !containsAny(values, dairy)) matched += 1;
+      if (preferences.includes("High protein") && Number(nutrition?.protein ?? 0) >= 20) matched += 1;
+      const ratio = matched / preferences.length;
+      return { ...candidate, reason: ratio >= 1 ? "Matches your dietary preferences and pantry." : `${Math.round(ratio * 100)}% preference fit · ${candidate.reason}` };
+    })
+    .sort((a, b) => {
+      const fit = (candidate: MealPlanCandidate) => {
+        const { used, missing } = recipeIngredients(candidate.recipe);
+        const values = [...used, ...missing, candidate.recipe.title];
+        const nutrition = candidate.recipe.recipe_data?.nutrition as { protein?: number } | undefined;
+        let matched = 0;
+        if (preferences.includes("Vegetarian") && !containsAny(values, meat)) matched++;
+        if (preferences.includes("Dairy-free") && !containsAny(values, dairy)) matched++;
+        if (preferences.includes("High protein") && Number(nutrition?.protein ?? 0) >= 20) matched++;
+        return matched;
+      };
+      return fit(b) - fit(a) || b.pantryCoverage - a.pantryCoverage;
+    });
+}
