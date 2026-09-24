@@ -102,3 +102,49 @@ export function getKitchenScore(
     missing,
   };
 }
+
+export type KitchenScoreExplanation = {
+  label: string;
+  detail: string;
+  tone: "positive" | "neutral" | "attention";
+};
+
+export function explainKitchenScore(
+  recipe: SmartRecipe,
+  signals: KitchenScoreSignals,
+  pantry: PantrySignalItem[],
+  maxTime: number,
+  prioritizeExpiring: boolean,
+): KitchenScoreExplanation[] {
+  const explanations: KitchenScoreExplanation[] = [];
+  const urgentUsed = recipe.used
+    .map((ingredient) => pantry.find((item) => matchesIngredient(item.name, ingredient)))
+    .filter((item): item is PantrySignalItem => Boolean(item && item.days <= 3));
+
+  if (signals.pantry >= 80) {
+    explanations.push({ label: "Pantry coverage", detail: `${signals.pantry}% of the recipe is covered by ingredients you already have.`, tone: "positive" });
+  } else {
+    explanations.push({ label: "Pantry coverage", detail: `${recipe.missing.length} ingredient${recipe.missing.length === 1 ? "" : "s"} still need to be sourced.`, tone: "attention" });
+  }
+
+  if (prioritizeExpiring && urgentUsed.length) {
+    const names = urgentUsed.slice(0, 2).map((item) => item.name).join(" and ");
+    explanations.push({ label: "Use soon", detail: `${names} ${urgentUsed.length === 1 ? "is" : "are"} close to expiry, so this recipe helps prioritize them.`, tone: "positive" });
+  } else if (prioritizeExpiring) {
+    explanations.push({ label: "Expiry", detail: "No expiring pantry ingredient is a strong match for this recipe.", tone: "neutral" });
+  }
+
+  if (recipe.time <= maxTime) {
+    explanations.push({ label: "Time fit", detail: `${recipe.time} minutes fits your ${maxTime}-minute cooking limit.`, tone: "positive" });
+  } else {
+    explanations.push({ label: "Time fit", detail: `${recipe.time} minutes is above your ${maxTime}-minute target.`, tone: "attention" });
+  }
+
+  if (signals.missing >= 75) {
+    explanations.push({ label: "Shopping effort", detail: recipe.missing.length ? "Only a small number of ingredients are missing." : "Nothing essential is missing.", tone: "positive" });
+  } else {
+    explanations.push({ label: "Shopping effort", detail: "This recipe needs several ingredients beyond the current pantry.", tone: "attention" });
+  }
+
+  return explanations;
+};
