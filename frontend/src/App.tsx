@@ -143,6 +143,7 @@ function App() {
   const [recipeDifficulty, setRecipeDifficulty] = useState("All");
   const [recipeTimeFilter, setRecipeTimeFilter] = useState("Any time");
   const [recipeMatchFilter, setRecipeMatchFilter] = useState(0);
+  const [recipeSort, setRecipeSort] = useState("Best fit");
   const [saveBusy, setSaveBusy] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<SmartRecipe | null>(null);
   const [cookRecipe, setCookRecipe] = useState<SmartRecipe | null>(null);
@@ -439,12 +440,21 @@ function App() {
 
   const visibleRecipes = useMemo(() => {
     const search = recipeSearch.trim().toLowerCase();
-    return recipeResults
+    const filtered = recipeResults
       .filter((recipe) => !search || [recipe.title, recipe.cuisine, recipe.reason, ...recipe.used, ...recipe.missing].some((value) => value.toLowerCase().includes(search)))
       .filter((recipe) => recipeDifficulty === "All" || recipe.difficulty === recipeDifficulty)
       .filter((recipe) => recipeTimeFilter === "Any time" || (recipeTimeFilter === "15 min" ? recipe.time <= 15 : recipeTimeFilter === "30 min" ? recipe.time <= 30 : recipe.time <= 60))
       .filter((recipe) => recipe.match >= recipeMatchFilter);
-  }, [recipeResults, recipeSearch, recipeDifficulty, recipeTimeFilter, recipeMatchFilter]);
+
+    return [...filtered].sort((a, b) => {
+      const scoreA = getScore(a);
+      const scoreB = getScore(b);
+      if (recipeSort === "Fastest") return a.time - b.time;
+      if (recipeSort === "Highest pantry match") return b.match - a.match;
+      if (recipeSort === "Use expiring first") return scoreB.expiry - scoreA.expiry || scoreB.overall - scoreA.overall;
+      return scoreB.overall - scoreA.overall;
+    });
+  }, [recipeResults, recipeSearch, recipeDifficulty, recipeTimeFilter, recipeMatchFilter, recipeSort, kitchenScores]);
 
   const kitchenScores = useMemo(() => {
     const items = pantry.map((item) => ({ name: item.name, days: item.days }));
@@ -582,7 +592,7 @@ function App() {
                     <CustomSelect label="TIME" value={recipeTimeFilter} onChange={(value) => setRecipeTimeFilter(String(value))} options={["Any time", "15 min", "30 min", "60 min"].map((item) => ({ value: item, label: item }))} />
                     <CustomSelect label="MATCH" value={recipeMatchFilter} onChange={(value) => setRecipeMatchFilter(Number(value))} options={[0, 50, 70, 85].map((item) => ({ value: item, label: item === 0 ? "Any match" : item + "%+" }))} />
                     <span className="recipe-filter-count">{visibleRecipes.length} of {recipeResults.length}</span>
-                  </div>
+                  </div><CustomSelect label="Sort" value={recipeSort} options={[{value:"Best fit",label:"Best fit"},{value:"Use expiring first",label:"Use expiring first"},{value:"Fastest",label:"Fastest"},{value:"Highest pantry match",label:"Highest pantry match"}]} onChange={(value) => setRecipeSort(String(value))} />
                   {visibleRecipes.length === 0 ? (
                     <div className="recipe-filter-empty"><Search size={22} /><strong>No recipes match those filters.</strong><span>Try clearing a filter or lowering the pantry-match threshold.</span><button type="button" onClick={() => { setRecipeSearch(""); setRecipeDifficulty("All"); setRecipeTimeFilter("Any time"); setRecipeMatchFilter(0); }}>Reset filters</button></div>
                   ) : (
