@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from backend.app.services.openrouter import OpenRouterError, generate_recipe_with_model, stream_recipe
 from backend.app.services.vision import VisionError, detect_ingredients
@@ -11,8 +11,8 @@ router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 class PantryIngredient(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     quantity: float | None = None
-    unit: str | None = None
-    expires_on: str | None = None
+    unit: str | None = Field(default=None, max_length=30)
+    expires_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
 
 class RecipeRequest(BaseModel):
@@ -20,6 +20,14 @@ class RecipeRequest(BaseModel):
     goal: str = Field(default="balanced dinner", max_length=200)
     max_time_minutes: int = Field(default=45, ge=5, le=240)
     dietary_preferences: list[str] = Field(default_factory=list, max_length=10)
+
+    @field_validator("dietary_preferences")
+    @classmethod
+    def validate_dietary_preferences(cls, value):
+        cleaned = [item.strip() for item in value]
+        if any(not item or len(item) > 60 for item in cleaned):
+            raise ValueError("Each dietary preference must be between 1 and 60 characters")
+        return cleaned
     cuisine: str = Field(default="Any cuisine", max_length=60)
     prioritize_expiring: bool = True
 
