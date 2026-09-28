@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
@@ -87,7 +89,7 @@ Rules:
             async for event in stream_recipe(prompt):
                 yield f"data: {event}\n\n"
         except OpenRouterError as exc:
-            yield f'data: {{"type":"error","message":{__import__("json").dumps(str(exc))}}}\n\n'
+            yield f'data: {{"type":"error","message":{json.dumps(str(exc))}}}\n\n'
 
     return StreamingResponse(
         events(),
