@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -14,7 +15,18 @@ class PantryIngredient(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     quantity: float | None = None
     unit: str | None = Field(default=None, max_length=30)
-    expires_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    expires_on: str | None = Field(default=None, pattern=r"^d{4}-d{2}-d{2}$")
+
+    @field_validator("expires_on")
+    @classmethod
+    def validate_expiry(cls, value):
+        if value is None:
+            return value
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError("expires_on must be a valid calendar date in YYYY-MM-DD format") from exc
+        return value
 
 
 class RecipeRequest(BaseModel):
@@ -45,8 +57,6 @@ async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
         return {"provider": "Hugging Face BLIP", "ingredients": ingredients}
     except VisionError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
-
-
 
 
 def _pantry_label(item: PantryIngredient) -> str:
