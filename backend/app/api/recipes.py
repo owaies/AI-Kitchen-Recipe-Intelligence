@@ -15,7 +15,7 @@ class PantryIngredient(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     quantity: float | None = None
     unit: str | None = Field(default=None, max_length=30)
-    expires_on: str | None = Field(default=None, pattern=r"^d{4}-d{2}-d{2}$")
+    expires_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
     @field_validator("expires_on")
     @classmethod
