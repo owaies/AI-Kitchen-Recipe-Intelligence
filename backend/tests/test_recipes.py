@@ -5,7 +5,10 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_recipe_generation_requires_gemini_configuration():
+def test_recipe_generation_requires_openrouter_configuration(monkeypatch):
+    from backend.app.core.config import settings
+
+    monkeypatch.setattr(settings, "openrouter_api_key", "")
     response = client.post(
         "/api/recipes/generate",
         json={
@@ -16,7 +19,7 @@ def test_recipe_generation_requires_gemini_configuration():
     )
 
     assert response.status_code == 502
-    assert "Gemini API key is not configured" in response.json()["detail"]
+    assert response.json()["detail"] == "OpenRouter API key is not configured."
 
 def test_pantry_ingredient_accepts_iso_expiry_date():
     from app.api.recipes import PantryIngredient
