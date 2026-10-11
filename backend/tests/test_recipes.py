@@ -17,3 +17,20 @@ def test_recipe_generation_requires_gemini_configuration():
 
     assert response.status_code == 502
     assert "Gemini API key is not configured" in response.json()["detail"]
+
+def test_pantry_ingredient_accepts_iso_expiry_date():
+    from app.api.recipes import PantryIngredient
+
+    ingredient = PantryIngredient(name="tomato", expires_on="2026-10-11")
+    assert ingredient.expires_on == "2026-10-11"
+
+
+def test_pantry_ingredient_rejects_invalid_expiry_dates():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import PantryIngredient
+
+    for invalid_date in ("11-10-2026", "2026-1-11", "2026-02-30"):
+        with pytest.raises(ValidationError):
+            PantryIngredient(name="tomato", expires_on=invalid_date)
+
