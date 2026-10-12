@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/recipes", tags=["recipes"])
 
 class PantryIngredient(BaseModel):
     name: str = Field(min_length=1, max_length=100)
-    quantity: float | None = None
+    quantity: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     unit: str | None = Field(default=None, max_length=30)
     expires_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
