@@ -15,17 +15,33 @@ class VisionError(RuntimeError):
 
 
 def _decode_image(image_data_url: str) -> Image.Image:
-    if "," not in image_data_url or not image_data_url.startswith("data:image/"):
+    if "," not in image_data_url:
         raise VisionError("Invalid image data. Please upload a JPG, PNG, WEBP, or GIF image.")
 
-    _, encoded = image_data_url.split(",", 1)
+    header, encoded = image_data_url.split(",", 1)
+    allowed_headers = {
+        "data:image/jpeg;base64",
+        "data:image/jpg;base64",
+        "data:image/png;base64",
+        "data:image/webp;base64",
+        "data:image/gif;base64",
+    }
+    if header.lower() not in allowed_headers:
+        raise VisionError("Unsupported image type. Please upload a JPG, PNG, WEBP, or GIF image.")
 
     try:
         image_bytes = base64.b64decode(encoded, validate=True)
         if len(image_bytes) > 8 * 1024 * 1024:
             raise VisionError("Image must be smaller than 8 MB.")
 
-        return Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        with Image.open(io.BytesIO(image_bytes)) as source:
+            # Bound decoded pixel count as well as compressed upload size to
+            # reduce memory-exhaustion risk from highly compressed images.
+            width, height = source.size
+            if width < 1 or height < 1 or width * height > 25_000_000:
+                raise VisionError("Image dimensions must not exceed 25 megapixels.")
+            source.load()
+            return source.convert("RGB")
     except VisionError:
         raise
     except Exception as exc:
