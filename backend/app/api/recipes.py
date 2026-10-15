@@ -17,6 +17,14 @@ class PantryIngredient(BaseModel):
     unit: str | None = Field(default=None, max_length=30)
     expires_on: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Ingredient name cannot be blank")
+        return cleaned
+
     @field_validator("expires_on")
     @classmethod
     def validate_expiry(cls, value):
