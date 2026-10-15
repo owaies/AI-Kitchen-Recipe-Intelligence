@@ -37,3 +37,18 @@ def test_pantry_ingredient_rejects_invalid_expiry_dates():
         with pytest.raises(ValidationError):
             PantryIngredient(name="tomato", expires_on=invalid_date)
 
+
+def test_pantry_ingredient_trims_surrounding_whitespace():
+    from app.api.recipes import PantryIngredient
+
+    ingredient = PantryIngredient(name="  tomato  ")
+    assert ingredient.name == "tomato"
+
+
+def test_pantry_ingredient_rejects_whitespace_only_name():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import PantryIngredient
+
+    with pytest.raises(ValidationError):
+        PantryIngredient(name="   ")
