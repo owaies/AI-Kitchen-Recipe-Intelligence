@@ -52,3 +52,20 @@ def test_pantry_ingredient_rejects_whitespace_only_name():
 
     with pytest.raises(ValidationError):
         PantryIngredient(name="   ")
+
+def test_vision_rejects_unsupported_data_url_mime_type():
+    import pytest
+
+    from backend.app.services.vision import VisionError, _decode_image
+
+    with pytest.raises(VisionError, match="Unsupported image type"):
+        _decode_image("data:text/plain;base64,SGVsbG8=")
+
+
+def test_vision_rejects_malformed_base64():
+    import pytest
+
+    from backend.app.services.vision import VisionError, _decode_image
+
+    with pytest.raises(VisionError, match="could not be decoded"):
+        _decode_image("data:image/png;base64,not-base64!")
