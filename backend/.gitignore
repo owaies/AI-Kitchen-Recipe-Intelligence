@@ -1,0 +1,16 @@
+# Local Python environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Local secrets and runtime files
+.env
+.env.*
+!.env.example
+*.log
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage*
+htmlcov/
