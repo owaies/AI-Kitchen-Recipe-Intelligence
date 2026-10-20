@@ -52,3 +52,31 @@ def test_pantry_ingredient_rejects_whitespace_only_name():
 
     with pytest.raises(ValidationError):
         PantryIngredient(name="   ")
+
+
+def test_pantry_ingredient_rejects_non_finite_quantities():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import PantryIngredient
+
+    for quantity in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValidationError):
+            PantryIngredient(name="tomato", quantity=quantity)
+
+
+def test_dietary_preferences_are_trimmed_and_blank_values_rejected():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import RecipeRequest
+
+    request = RecipeRequest(
+        pantry=[{"name": "tomato"}],
+        dietary_preferences=["  vegetarian  ", "gluten-free"],
+    )
+    assert request.dietary_preferences == ["vegetarian", "gluten-free"]
+
+    with pytest.raises(ValidationError):
+        RecipeRequest(
+            pantry=[{"name": "tomato"}],
+            dietary_preferences=["   "],
+        )
