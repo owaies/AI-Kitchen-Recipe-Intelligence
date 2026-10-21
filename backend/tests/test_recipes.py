@@ -21,6 +21,7 @@ def test_recipe_generation_requires_openrouter_configuration(monkeypatch):
     assert response.status_code == 502
     assert response.json()["detail"] == "OpenRouter API key is not configured."
 
+
 def test_pantry_ingredient_accepts_iso_expiry_date():
     from app.api.recipes import PantryIngredient
 
@@ -53,6 +54,7 @@ def test_pantry_ingredient_rejects_whitespace_only_name():
     with pytest.raises(ValidationError):
         PantryIngredient(name="   ")
 
+
 def test_vision_rejects_unsupported_data_url_mime_type():
     import pytest
 
@@ -69,3 +71,31 @@ def test_vision_rejects_malformed_base64():
 
     with pytest.raises(VisionError, match="could not be decoded"):
         _decode_image("data:image/png;base64,not-base64!")
+
+
+def test_pantry_ingredient_rejects_non_finite_quantities():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import PantryIngredient
+
+    for quantity in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValidationError):
+            PantryIngredient(name="tomato", quantity=quantity)
+
+
+def test_dietary_preferences_are_trimmed_and_blank_values_rejected():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.recipes import RecipeRequest
+
+    request = RecipeRequest(
+        pantry=[{"name": "tomato"}],
+        dietary_preferences=["  vegetarian  ", "gluten-free"],
+    )
+    assert request.dietary_preferences == ["vegetarian", "gluten-free"]
+
+    with pytest.raises(ValidationError):
+        RecipeRequest(
+            pantry=[{"name": "tomato"}],
+            dietary_preferences=["   "],
+        )
