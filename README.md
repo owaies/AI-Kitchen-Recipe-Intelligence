@@ -121,3 +121,13 @@ Users can also reorder recipe results by Best fit, Use expiring first, Fastest, 
 
 The presentation and cheat sheet follow the application's Modern Culinary Magazine visual direction: warm cream surfaces, tomato red, olive green, espresso brown, butter yellow, editorial typography, and recipe-card inspired layouts.
 
+## Backend tests
+
+Run the backend regression suite from the repository root:
+
+```bash
+python -m pytest backend/tests -q
+```
+
+The suite covers the health endpoint, pantry input normalization and expiry-date validation, recipe configuration errors, and malformed or unsupported image data URLs. The vision payload validation tests use local invalid inputs and do not call the external vision provider.
+
