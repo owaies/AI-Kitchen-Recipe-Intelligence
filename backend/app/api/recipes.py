@@ -50,6 +50,23 @@ class RecipeRequest(BaseModel):
         if any(not item or len(item) > 60 for item in cleaned):
             raise ValueError("Each dietary preference must be between 1 and 60 characters")
         return cleaned
+
+    @field_validator("goal")
+    @classmethod
+    def validate_goal(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Recipe goal cannot be blank")
+        return cleaned
+
+    @field_validator("cuisine")
+    @classmethod
+    def validate_cuisine(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Cuisine cannot be blank")
+        return cleaned
+
     cuisine: str = Field(default="Any cuisine", max_length=60)
     prioritize_expiring: bool = True
 
