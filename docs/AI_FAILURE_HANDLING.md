@@ -12,3 +12,10 @@ Log model failures without exposing API keys or private user data. Include enoug
 
 ## Regression
 Test primary-model failure, fallback success, all-model failure, and malformed model output.
+
+
+## Vision upload lifecycle
+
+Ingredient-image requests decode supported data URLs into a temporary JPEG before calling the vision provider. The temporary file must be removed on both success and provider failure, including exceptions raised by the background worker.
+
+Regression coverage: run `pytest backend/tests/test_vision_cleanup.py` from the repository root. The test replaces the remote provider call with a controlled failure and verifies that the temporary image no longer exists afterward.
