@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,7 +22,7 @@ class Settings(BaseSettings):
         "google/gemma-4-26b-a4b:free,"
         "google/gemma-4-31b-it:free"
     )
-    openrouter_retries_per_model: int = 1
+    openrouter_retries_per_model: int = Field(default=1, ge=0, le=3)
     openrouter_site_url: str = ""
     huggingface_space_url: str = "https://owaies-kitchen-ingredient-detector.hf.space"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173,https://ai-kitchen-recipe-intelligence-owaies-projects.vercel.app"
