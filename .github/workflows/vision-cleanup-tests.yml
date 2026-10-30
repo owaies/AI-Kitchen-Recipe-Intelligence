@@ -1,4 +1,4 @@
-name: Vision cleanup regression tests
+name: Backend focused regression tests
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/app/services/vision.py'
       - 'backend/tests/test_vision_cleanup.py'
+      - 'backend/app/core/config.py'
+      - 'backend/tests/test_settings_validation.py'
       - 'backend/requirements.txt'
       - '.github/workflows/vision-cleanup-tests.yml'
   pull_request:
@@ -20,7 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  vision-cleanup:
+  backend-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,5 +33,5 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - name: Install backend test dependencies
         run: python -m pip install -r backend/requirements.txt
-      - name: Verify temporary image cleanup on provider failure
-        run: python -m pytest -q backend/tests/test_vision_cleanup.py
+      - name: Run vision cleanup and settings validation tests
+        run: python -m pytest -q backend/tests/test_vision_cleanup.py backend/tests/test_settings_validation.py
