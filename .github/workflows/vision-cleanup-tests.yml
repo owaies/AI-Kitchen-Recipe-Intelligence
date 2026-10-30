@@ -14,6 +14,8 @@ on:
     paths:
       - 'backend/app/services/vision.py'
       - 'backend/tests/test_vision_cleanup.py'
+      - 'backend/app/core/config.py'
+      - 'backend/tests/test_settings_validation.py'
       - 'backend/requirements.txt'
       - '.github/workflows/vision-cleanup-tests.yml'
   workflow_dispatch:
