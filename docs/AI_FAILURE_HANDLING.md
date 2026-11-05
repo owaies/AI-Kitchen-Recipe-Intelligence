@@ -7,11 +7,13 @@ The application uses an OpenRouter primary model with a fallback chain for recip
 - Users should receive an actionable error when every configured model fails.
 - Deterministic pantry-based recipe logic should remain available where implemented.
 
+- For non-streaming responses that use content blocks, parse only string-valued text blocks. Ignore image and metadata blocks rather than letting them break recipe parsing; return a controlled invalid-response error when no usable text remains.
+
 ## Observability
 Log model failures without exposing API keys or private user data. Include enough context to distinguish timeout, unavailable model, and invalid-output failures.
 
 ## Regression
-Test primary-model failure, fallback success, all-model failure, and malformed model output.
+Test primary-model failure, fallback success, all-model failure, malformed model output, and mixed content-block responses containing non-text or missing text values.
 
 
 ## Vision upload lifecycle
