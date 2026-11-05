@@ -99,3 +99,24 @@ def test_dietary_preferences_are_trimmed_and_blank_values_rejected():
             pantry=[{"name": "tomato"}],
             dietary_preferences=["   "],
         )
+
+def test_openrouter_parser_ignores_non_text_content_blocks():
+    from backend.app.services.openrouter import _parse_json_content
+
+    content = [
+        {"type": "text", "text": '{"title": "Tomato soup"}'},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,AA=="}},
+        {"type": "text", "text": None},
+        {"type": "text", "text": 42},
+    ]
+
+    assert _parse_json_content(content) == {"title": "Tomato soup"}
+
+
+def test_openrouter_parser_returns_controlled_error_without_text_blocks():
+    import pytest
+
+    from backend.app.services.openrouter import OpenRouterError, _parse_json_content
+
+    with pytest.raises(OpenRouterError, match="not valid JSON"):
+        _parse_json_content([{"type": "image_url"}, {"type": "text", "text": None}])
