@@ -40,4 +40,4 @@ jobs:
       - name: Install backend test dependencies
         run: python -m pip install -r backend/requirements.txt
       - name: Run focused backend regression tests
-        run: python -m pytest -q backend/tests/test_vision_cleanup.py backend/tests/test_settings_validation.py backend/tests/test_recipes.py
+        run: PYTHONPATH=backend python -m pytest -q backend/tests/test_vision_cleanup.py backend/tests/test_settings_validation.py backend/tests/test_recipes.py
