@@ -18,6 +18,8 @@ on:
       - 'backend/tests/test_vision_cleanup.py'
       - 'backend/app/core/config.py'
       - 'backend/tests/test_settings_validation.py'
+      - 'backend/app/services/openrouter.py'
+      - 'backend/tests/test_recipes.py'
       - 'backend/requirements.txt'
       - '.github/workflows/vision-cleanup-tests.yml'
   workflow_dispatch:
