@@ -16,10 +16,12 @@ class OpenRouterError(RuntimeError):
 
 def _parse_json_content(content: object) -> dict:
     if isinstance(content, list):
+        # Multimodal providers may include image or metadata blocks alongside
+        # text. Only string text blocks belong in the structured recipe body.
         content = "".join(
-            part.get("text", "")
+            part["text"]
             for part in content
-            if isinstance(part, dict)
+            if isinstance(part, dict) and isinstance(part.get("text"), str)
         )
 
     if not isinstance(content, str):
