@@ -120,3 +120,59 @@ def test_openrouter_parser_returns_controlled_error_without_text_blocks():
 
     with pytest.raises(OpenRouterError, match="not valid JSON"):
         _parse_json_content([{"type": "image_url"}, {"type": "text", "text": None}])
+
+def test_openrouter_retries_transient_compatibility_response(monkeypatch):
+    import asyncio
+
+    from backend.app.core.config import settings
+    from backend.app.services import openrouter
+
+    monkeypatch.setattr(settings, "openrouter_api_key", "test-key")
+    monkeypatch.setattr(settings, "openrouter_model", "test/primary")
+    monkeypatch.setattr(settings, "openrouter_fallback_models", "")
+    monkeypatch.setattr(settings, "openrouter_retries_per_model", 1)
+
+    class FakeResponse:
+        def __init__(self, status_code, payload=None, text=""):
+            self.status_code = status_code
+            self.is_success = 200 <= status_code < 300
+            self._payload = payload
+            self.text = text
+
+        def json(self):
+            return self._payload
+
+    responses = [
+        FakeResponse(400, text="structured output is unsupported"),
+        FakeResponse(503, text="temporary compatibility endpoint outage"),
+        FakeResponse(200, {"choices": [{"message": {"content": '{"title": "Tomato soup"}'}}]}),
+    ]
+    request_formats = []
+
+    class FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, _url, headers=None, json=None):
+            request_formats.append("response_format" in json)
+            return responses.pop(0)
+
+    async def no_wait(_delay):
+        return None
+
+    monkeypatch.setattr(openrouter.httpx, "AsyncClient", FakeAsyncClient)
+    monkeypatch.setattr(openrouter.asyncio, "sleep", no_wait)
+
+    recipe, model = asyncio.run(openrouter.generate_recipe_with_model("Make tomato soup"))
+
+    assert recipe == {"title": "Tomato soup"}
+    assert model == "test/primary"
+    assert request_formats == [True, False, True]
+    assert responses == []
+
