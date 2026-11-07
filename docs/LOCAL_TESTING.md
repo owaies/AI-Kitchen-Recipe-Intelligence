@@ -6,7 +6,7 @@ Use the Python environment described in the repository requirements and run the 
 
 ## Recipe checks
 
-Exercise minimum and maximum pantry sizes, dietary-preference limits, cooking-time bounds, empty values, and invalid expiry-date formats. Test both synchronous and streaming generation error paths.
+Exercise minimum and maximum pantry sizes, dietary-preference limits, cooking-time bounds, empty values, and invalid expiry-date formats. Test both synchronous and streaming generation error paths. Simulate a structured-output 400 followed by a transient compatibility-request 503, then a successful retry; confirm the retry uses the compatibility response status rather than prematurely abandoning the model.
 
 OpenRouter retry configuration is bounded to 0–3 retries per model. The default remains one retry. Run `pytest backend/tests/test_settings_validation.py` to verify accepted and rejected values without requiring provider credentials.
 
