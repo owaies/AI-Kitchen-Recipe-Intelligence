@@ -135,12 +135,15 @@ async def generate_recipe_with_model(prompt: str) -> tuple[dict, str]:
                         if compatibility_response.is_success:
                             response = compatibility_response
                         else:
-                            last_detail = compatibility_response.text[:500]
-                            if compatibility_response.status_code in {401, 403}:
+                            # Retry and fallback decisions must use the compatibility
+                            # request's status, not the original structured-output 400/404.
+                            response = compatibility_response
+                            last_detail = response.text[:500]
+                            if response.status_code in {401, 403}:
                                 raise OpenRouterError(
-                                    f"OpenRouter authentication failed ({compatibility_response.status_code})."
+                                    f"OpenRouter authentication failed ({response.status_code})."
                                 )
-                            if compatibility_response.status_code not in TRANSIENT_STATUS_CODES:
+                            if response.status_code not in TRANSIENT_STATUS_CODES:
                                 break
 
                     if response.is_success:
@@ -257,6 +260,7 @@ async def stream_recipe(prompt: str):
                         last_detail = (await response.aread()).decode(
                             "utf-8", errors="replace"
                         )[:500]
+                        retry_status_code = response.status_code
                         if response.status_code in {400, 404}:
                             async with client.stream(
                                 "POST",
@@ -318,11 +322,12 @@ async def stream_recipe(prompt: str):
                                 last_detail = (await compatibility_response.aread()).decode(
                                     "utf-8", errors="replace"
                                 )[:500]
-                        if response.status_code in {401, 403}:
+                                retry_status_code = compatibility_response.status_code
+                        if retry_status_code in {401, 403}:
                             raise OpenRouterError(
-                                f"OpenRouter authentication failed ({response.status_code})."
+                                f"OpenRouter authentication failed ({retry_status_code})."
                             )
-                        if response.status_code not in TRANSIENT_STATUS_CODES:
+                        if retry_status_code not in TRANSIENT_STATUS_CODES:
                             yield json.dumps({
                                 "type": "fallback",
                                 "message": f"{model} is unavailable. Trying the next model.",
