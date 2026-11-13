@@ -3,7 +3,7 @@
 Test the recipe endpoint with representative pantry states.
 
 ## Pantry
-Check one ingredient, many ingredients, missing quantities, and near-expiry items.
+Check one ingredient, many ingredients, missing quantities, and near-expiry items. Verify that a quantity without a unit is still included in the generation prompt, and that surrounding or whitespace-only unit values are normalized.
 
 ## Preferences
 Test dietary preferences, cuisine selection, maximum cooking time, and empty optional fields.
