@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from backend.app.api.recipes import RecipeRequest
+from backend.app.api.recipes import PantryIngredient, RecipeRequest, _pantry_label
 
 
 def valid_payload():
@@ -44,3 +44,24 @@ def test_recipe_request_accepts_valid_leap_day_expiry():
     request = RecipeRequest(**payload)
 
     assert request.pantry[0].expires_on == "2028-02-29"
+
+
+
+def test_pantry_label_preserves_quantity_without_a_unit():
+    ingredient = PantryIngredient(name="tomato", quantity=2)
+
+    assert _pantry_label(ingredient) == "tomato (2)"
+
+
+def test_pantry_unit_is_trimmed_before_prompt_formatting():
+    ingredient = PantryIngredient(name="flour", quantity=1.5, unit="  cups  ")
+
+    assert ingredient.unit == "cups"
+    assert _pantry_label(ingredient) == "flour (1.5 cups)"
+
+
+def test_blank_optional_pantry_unit_is_treated_as_missing():
+    ingredient = PantryIngredient(name="tomato", quantity=2, unit="   ")
+
+    assert ingredient.unit is None
+    assert _pantry_label(ingredient) == "tomato (2)"
