@@ -25,6 +25,14 @@ class PantryIngredient(BaseModel):
             raise ValueError("Ingredient name cannot be blank")
         return cleaned
 
+    @field_validator("unit")
+    @classmethod
+    def normalize_unit(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        return cleaned or None
+
     @field_validator("expires_on")
     @classmethod
     def validate_expiry(cls, value):
@@ -85,7 +93,11 @@ async def detect_ingredient_endpoint(request: VisionRequest) -> dict:
 
 
 def _pantry_label(item: PantryIngredient) -> str:
-    quantity = f"{item.quantity:g} {item.unit}" if item.quantity is not None and item.unit else ""
+    quantity = ""
+    if item.quantity is not None:
+        quantity = f"{item.quantity:g}"
+        if item.unit:
+            quantity = f"{quantity} {item.unit}"
     expiry = f", expires {item.expires_on}" if item.expires_on else ""
     details = f" ({quantity}{expiry})" if quantity or expiry else ""
     return f"{item.name}{details}"
