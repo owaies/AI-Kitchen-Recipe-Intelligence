@@ -103,54 +103,16 @@ def _pantry_label(item: PantryIngredient) -> str:
     return f"{item.name}{details}"
 
 
-@router.post("/generate/stream")
-async def stream_recipe_endpoint(request: RecipeRequest) -> StreamingResponse:
+def _build_recipe_prompt(request: RecipeRequest) -> str:
     pantry_text = ", ".join(_pantry_label(item) for item in request.pantry)
     preferences = ", ".join(request.dietary_preferences) or "none specified"
-    priority_rule = "Prioritize ingredients with the nearest expiry date when practical." if request.prioritize_expiring else "Do not prioritize expiry dates unless they naturally fit the recipe."
-    prompt = f"""
-You are the recipe intelligence engine for a private kitchen app.
-Create ONE practical recipe using the user's pantry as the primary source.
-
-Pantry: {pantry_text}
-Goal: {request.goal}
-Maximum cooking time: {request.max_time_minutes} minutes
-Dietary preferences: {preferences}
-Preferred cuisine: {request.cuisine}
-Expiry strategy: {priority_rule}
-
-Rules:
-- Prefer ingredients already in the pantry.
-- Follow the preferred cuisine when one is selected. If it is Any cuisine, choose the cuisine that best fits the pantry.
-- Clearly list anything missing instead of pretending it is available.
-- Keep the recipe realistic for a home kitchen.
-- Respect every dietary preference.
-- Offer practical substitutions.
-- Keep the recipe within the requested maximum time.
-- Nutrition values are estimates, not medical advice.
-- Return exactly one JSON object and no markdown.
-""".strip()
-
-    async def events():
-        try:
-            async for event in stream_recipe(prompt):
-                yield f"data: {event}\n\n"
-        except OpenRouterError as exc:
-            yield f'data: {{"type":"error","message":{json.dumps(str(exc))}}}\n\n'
-
-    return StreamingResponse(
-        events(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    priority_rule = (
+        "Prioritize ingredients with the nearest expiry date when practical."
+        if request.prioritize_expiring
+        else "Do not prioritize expiry dates unless they naturally fit the recipe."
     )
 
-@router.post("/generate")
-async def generate_recipe_endpoint(request: RecipeRequest) -> dict:
-    pantry_text = ", ".join(_pantry_label(item) for item in request.pantry)
-    preferences = ", ".join(request.dietary_preferences) or "none specified"
-    priority_rule = "Prioritize ingredients with the nearest expiry date when practical." if request.prioritize_expiring else "Do not prioritize expiry dates unless they naturally fit the recipe."
-
-    prompt = f"""
+    return f"""
 You are the recipe intelligence engine for a private kitchen app.
 Create ONE practical recipe using the user's pantry as the primary source.
 
@@ -168,10 +130,33 @@ Rules:
 - Keep the recipe realistic for a home kitchen.
 - Respect every dietary preference. Never include a clearly incompatible ingredient.
 - Offer practical substitutions when a useful pantry ingredient can replace a missing one.
-- Keep the generated recipe within the requested maximum time.
+- Keep the recipe within the requested maximum time.
 - Nutrition values are estimates, not medical advice.
-- Return only the requested JSON structure.
+- Return exactly one JSON object and no markdown.
 """.strip()
+
+
+@router.post("/generate/stream")
+async def stream_recipe_endpoint(request: RecipeRequest) -> StreamingResponse:
+    prompt = _build_recipe_prompt(request)
+
+    async def events():
+        try:
+            async for event in stream_recipe(prompt):
+                yield f"data: {event}\n\n"
+        except OpenRouterError as exc:
+            yield f'data: {{"type":"error","message":{json.dumps(str(exc))}}}\n\n'
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
+
+
+@router.post("/generate")
+async def generate_recipe_endpoint(request: RecipeRequest) -> dict:
+    prompt = _build_recipe_prompt(request)
 
     try:
         recipe, model = await generate_recipe_with_model(prompt)
